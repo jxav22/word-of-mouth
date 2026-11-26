@@ -26,6 +26,13 @@ export const sources = sqliteTable('sources', {
   status: text('status').notNull().default('pending'),
   lastFetchedAt: text('last_fetched_at'),
   lastError: text('last_error'),
+  lastSuccessAt: text('last_success_at'),
+  fetchCount: integer('fetch_count').notNull().default(0),
+  consecutiveFailures: integer('consecutive_failures').notNull().default(0),
+  lastDurationMs: integer('last_duration_ms'),
+  lastItemCount: integer('last_item_count'),
+  adapterId: text('adapter_id'),
+  enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
 })
 
 export const articles = sqliteTable('articles', {

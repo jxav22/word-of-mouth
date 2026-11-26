@@ -36,6 +36,13 @@ function mapSource(row: typeof schema.sources.$inferSelect): Source {
     status: row.status as Source['status'],
     lastFetchedAt: row.lastFetchedAt,
     lastError: row.lastError,
+    lastSuccessAt: row.lastSuccessAt,
+    fetchCount: row.fetchCount ?? 0,
+    consecutiveFailures: row.consecutiveFailures ?? 0,
+    lastDurationMs: row.lastDurationMs,
+    lastItemCount: row.lastItemCount,
+    adapterId: row.adapterId,
+    enabled: row.enabled !== false,
   }
 }
 
@@ -64,6 +71,83 @@ export function listSources(feedId?: string): Source[] {
     ? db.select().from(schema.sources).where(eq(schema.sources.feedId, feedId)).all()
     : db.select().from(schema.sources).all()
   return rows.map(mapSource)
+}
+
+export function getSource(sourceId: string): Source | null {
+  const db = getDb()
+  const row = db.select().from(schema.sources).where(eq(schema.sources.id, sourceId)).get()
+  return row ? mapSource(row) : null
+}
+
+export async function addSource(input: {
+  feedId: string
+  kind: Source['kind']
+  url: string
+  title: string
+  ingest?: boolean
+}): Promise<{ source: Source; ingest?: Awaited<ReturnType<typeof refreshFeed>> }> {
+  const db = getDb()
+  const feed = db.select().from(schema.feeds).where(eq(schema.feeds.id, input.feedId)).get()
+  if (!feed) throw new Error('Feed not found')
+  if (!['rss', 'hn', 'reddit', 'api', 'demo'].includes(input.kind)) {
+    throw new Error('Invalid source kind')
+  }
+  const url = input.url.trim()
+  if (!url) throw new Error('URL is required')
+
+  const id = nanoid()
+  db.insert(schema.sources)
+    .values({
+      id,
+      feedId: input.feedId,
+      kind: input.kind,
+      url,
+      title: input.title.trim() || input.kind,
+      status: 'pending',
+      lastFetchedAt: null,
+      lastError: null,
+      lastSuccessAt: null,
+      fetchCount: 0,
+      consecutiveFailures: 0,
+      lastDurationMs: null,
+      lastItemCount: null,
+      adapterId: null,
+      enabled: true,
+    })
+    .run()
+
+  let ingestResult
+  if (input.ingest !== false && input.kind !== 'demo') {
+    ingestResult = await refreshFeed(input.feedId, { trigger: 'manual' })
+  }
+  return { source: getSource(id)!, ingest: ingestResult }
+}
+
+export function updateSource(
+  sourceId: string,
+  patch: { title?: string; url?: string; enabled?: boolean; kind?: Source['kind'] },
+): Source {
+  const db = getDb()
+  const row = db.select().from(schema.sources).where(eq(schema.sources.id, sourceId)).get()
+  if (!row) throw new Error('Source not found')
+  db.update(schema.sources)
+    .set({
+      title: patch.title?.trim() || row.title,
+      url: patch.url?.trim() || row.url,
+      enabled: patch.enabled !== undefined ? patch.enabled : row.enabled,
+      kind: patch.kind || row.kind,
+      status: patch.url && patch.url.trim() !== row.url ? 'pending' : row.status,
+    })
+    .where(eq(schema.sources.id, sourceId))
+    .run()
+  return getSource(sourceId)!
+}
+
+export function deleteSource(sourceId: string): void {
+  const db = getDb()
+  const row = db.select().from(schema.sources).where(eq(schema.sources.id, sourceId)).get()
+  if (!row) throw new Error('Source not found')
+  db.delete(schema.sources).where(eq(schema.sources.id, sourceId)).run()
 }
 
 export function getFeedItems(feedId: string, opts?: { q?: string; limit?: number }): FeedItemView[] {
@@ -347,12 +431,20 @@ export function healthPayload() {
   const db = getDb()
   const feedCount = db.select({ c: sql<number>`count(*)` }).from(schema.feeds).get()?.c ?? 0
   const articleCount = db.select({ c: sql<number>`count(*)` }).from(schema.articles).get()?.c ?? 0
+  const sourceRows = db.select().from(schema.sources).all()
   return {
     ok: true,
     service: 'word-of-mouth',
     time: new Date().toISOString(),
     feeds: feedCount,
     articles: articleCount,
+    sources: {
+      total: sourceRows.length,
+      ok: sourceRows.filter((s) => s.status === 'ok').length,
+      error: sourceRows.filter((s) => s.status === 'error').length,
+      pending: sourceRows.filter((s) => s.status === 'pending').length,
+      disabled: sourceRows.filter((s) => s.enabled === false).length,
+    },
     ai: {
       openai: Boolean(process.env.OPENAI_API_KEY),
       anthropic: Boolean(process.env.ANTHROPIC_API_KEY),

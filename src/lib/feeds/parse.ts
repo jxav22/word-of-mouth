@@ -134,6 +134,29 @@ function discoverSources(keywords: string[], topics: string[], query: string): P
     })
   }
 
+  // Reddit public JSON (no auth) — topic-mapped subs
+  if (topics.includes('ai') || /ai|llm|ml/.test(q)) {
+    sources.push({
+      kind: 'reddit',
+      url: 'https://www.reddit.com/r/MachineLearning/new.json?limit=25',
+      title: 'r/MachineLearning',
+    })
+  }
+  if (topics.includes('startups') || /startup|saas|funding/.test(q)) {
+    sources.push({
+      kind: 'reddit',
+      url: 'https://www.reddit.com/r/startups/new.json?limit=25',
+      title: 'r/startups',
+    })
+  }
+  if (topics.includes('employment') || /job|hiring|career/.test(q)) {
+    sources.push({
+      kind: 'reddit',
+      url: 'https://www.reddit.com/r/cscareerquestions/new.json?limit=25',
+      title: 'r/cscareerquestions',
+    })
+  }
+
   // Always include a general tech RSS fallback
   if (sources.length < 3) {
     sources.push({

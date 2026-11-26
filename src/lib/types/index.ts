@@ -24,6 +24,13 @@ export type Source = {
   status: 'ok' | 'error' | 'pending'
   lastFetchedAt?: string | null
   lastError?: string | null
+  lastSuccessAt?: string | null
+  fetchCount?: number
+  consecutiveFailures?: number
+  lastDurationMs?: number | null
+  lastItemCount?: number | null
+  adapterId?: string | null
+  enabled?: boolean
 }
 
 export type Article = {
