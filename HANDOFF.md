@@ -1,15 +1,15 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**main HEAD:** `3098bee`  
+**main HEAD:** `66407a7` (`66407a7187c874091fe58f300a49413151435a5b`)  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
-**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; final verify ~05:07 NZDT  
-**Hard stop:** ~05:37 NZDT · this note ~05:17 NZDT
+**Sprint:** ~04:27–05:37 NZDT Fri 27 Nov 2026  
+**Freeze:** ~05:30 NZDT (hard stop ~05:37 NZDT)
 
 ## Status
-Product on `main`. PRs **#1–#5** merged; **#6** closed; **#7** docs; **#8** Reddit warning classification.  
-Post-verify: HN query compact + soft-floor rank + HN RSS split + Reddit 404-Atom + soft-floor UX notes.  
-Layout: `@fontsource` + `AppChrome` only — never `next/font/google`.
+Runnable product on `main`. PRs **#1–#5** merged; **#6** closed (obsolete); **#7** docs; **#8** Reddit warning classification.  
+Post-verify polish: compact HN queries, soft-floor ranking + UX, HN RSS/Algolia split, Reddit 404-with-Atom, Docker HEALTHCHECK, SourceWarningsBanner.  
+Layout: `@fontsource` + `AppChrome` only — **never** `next/font/google`.
 
 ## How to run
 ```bash
@@ -20,17 +20,20 @@ npm run dev
 npm run build && npm start
 WOM_DISABLE_SCHEDULER=1 npm test
 npx playwright install chromium && npm run build && WOM_DISABLE_SCHEDULER=1 npm run test:e2e
+docker compose up --build   # unverified on sprint VMs
 ```
 
-## Test evidence
+## Final evidence (~05:30 NZDT, tip before this docs commit = `66407a7`)
 | Check | Result |
 | --- | --- |
-| `npm test` | **68/68** |
-| `npm run build` | green |
-| e2e | **4/4** |
-| Live create (Rust) | ranked **36** |
-| Docker | not verified |
+| `WOM_DISABLE_SCHEDULER=1 npm test` | **68/68** (20 files) |
+| `npm run test:e2e` | **4/4** |
+| `npm run build` | green (session) |
+| Layout guard | no `next/font/google` |
+| Live smoke (session) | health ok; create ranked **36–38**; search `feedSlug`; share **/s/:token** 200 |
+| Docker | **not verified** |
 
 ## Gaps
-- Docker compose unverified
-- Optional AI; Reddit 403/429 flaky — demos credential-free
+- Docker Compose/HEALTHCHECK not executed on agent VMs
+- Optional AI keys; extractive summaries without
+- Reddit often 403/429 — banner surfaces; demos credential-free
