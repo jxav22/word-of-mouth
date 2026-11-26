@@ -7,7 +7,7 @@ export function ShareButton({ path }: { path: string }) {
   return (
     <button
       type="button"
-      className="px-3 py-1.5 text-sm border border-[var(--line)] bg-white/70 hover:bg-white"
+      className="btn-outline"
       onClick={async () => {
         await navigator.clipboard.writeText(`${window.location.origin}${path}`)
         setCopied(true)

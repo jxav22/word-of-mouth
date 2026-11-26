@@ -1,23 +1,42 @@
 import Link from 'next/link'
 import { BrandMark } from './BrandMark'
 
-export function SiteHeader() {
+export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
   return (
-    <header className="border-b border-[var(--line)] bg-[rgba(243,247,244,0.65)] backdrop-blur-md sticky top-0 z-40">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-        <BrandMark />
-        <nav className="flex items-center gap-4 text-sm text-[var(--ink-soft)]">
-          <Link className="hover:text-[var(--moss)] transition-colors" href="/feeds">
+    <header
+      className={
+        overHero
+          ? 'site-header-over-hero'
+          : 'site-header sticky top-0 z-40'
+      }
+    >
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <BrandMark inverted={overHero} />
+        <nav className="flex items-center gap-3 text-sm sm:gap-4">
+          <Link
+            className={`nav-link transition-colors hover:text-[var(--teal)] ${overHero ? '' : 'text-[var(--ink-soft)]'}`}
+            href="/feeds"
+          >
             Feeds
           </Link>
-          <Link className="hover:text-[var(--moss)] transition-colors" href="/sources">
+          <Link
+            className={`nav-link hidden sm:inline transition-colors hover:text-[var(--teal)] ${overHero ? '' : 'text-[var(--ink-soft)]'}`}
+            href="/sources"
+          >
             Sources
           </Link>
-          <Link className="hover:text-[var(--moss)] transition-colors" href="/search">
+          <Link
+            className={`nav-link transition-colors hover:text-[var(--teal)] ${overHero ? '' : 'text-[var(--ink-soft)]'}`}
+            href="/search"
+          >
             Search
           </Link>
           <Link
-            className="hidden sm:inline-flex px-3 py-1.5 bg-[var(--ink)] text-[var(--paper)] hover:bg-[var(--moss)] transition-colors"
+            className={
+              overHero
+                ? 'nav-cta hidden sm:inline-flex px-3 py-1.5 transition-colors'
+                : 'hidden sm:inline-flex px-3 py-1.5 bg-[var(--ink)] text-[var(--paper)] transition-colors hover:bg-[var(--teal)]'
+            }
             href="/#create"
           >
             New feed

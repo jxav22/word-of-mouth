@@ -1,3 +1,4 @@
+import { ModeBadge } from '@/components/ModeBadge'
 import { bootstrap } from '@/lib/bootstrap'
 import { listFeeds, listSources } from '@/lib/feeds/service'
 import { listAdapters } from '@/lib/sources/registry'
@@ -25,14 +26,20 @@ export default async function SourcesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="animate-rise space-y-6">
       <div>
-        <h1 className="font-display text-4xl text-[var(--ink)]">Source diagnostics</h1>
-        <p className="text-[var(--ink-soft)] mt-1">
-          {summary.ok} ok · {summary.error} error · {summary.pending} pending · {summary.disabled}{' '}
-          disabled · {summary.total} total
+        <p className="section-label">Diagnostics</p>
+        <h1 className="font-display mt-1 text-4xl text-[var(--ink)]">Sources</h1>
+        <p className="mt-1 text-[var(--ink-soft)]">
+          <span className="status-ok">{summary.ok} ok</span>
+          {' · '}
+          <span className="status-error">{summary.error} error</span>
+          {' · '}
+          <span className="status-pending">{summary.pending} pending</span>
+          {' · '}
+          {summary.disabled} disabled · {summary.total} total
         </p>
-        <p className="text-xs text-[var(--ink-soft)] mt-1">
+        <p className="section-label mt-2">
           Adapters: {adapters.map((a) => `${a.id} (${a.kinds.join('/')})`).join(' · ')}
         </p>
       </div>
@@ -41,79 +48,124 @@ export default async function SourcesPage() {
 
       <SourceManager feeds={feeds.map((f) => ({ id: f.id, title: f.title }))} />
 
-      <div className="overflow-x-auto border border-[var(--line)] bg-white/40">
+      {/* Mobile: stacked cards */}
+      <ul className="space-y-3 md:hidden">
+        {sources.map((s) => {
+          const feed = feedMap[s.feedId]
+          return (
+            <li key={s.id} className="space-y-1.5 border border-[var(--line)] bg-white/40 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-[var(--ink)]">{s.title}</span>
+                <span
+                  className={`badge ${s.status === 'ok' ? 'badge-live' : s.status === 'error' ? 'badge-demo' : ''}`}
+                >
+                  {s.status}
+                </span>
+                {s.enabled === false ? <span className="badge">disabled</span> : null}
+              </div>
+              <p className="text-sm text-[var(--ink-soft)]">{feed?.title || s.feedId}</p>
+              {feed && <ModeBadge demo={feed.isDemo} />}
+              <p className="section-label">
+                {s.kind}
+                {s.adapterId ? ` · ${s.adapterId}` : ''}
+                {s.lastFetchedAt
+                  ? ` · ${new Date(s.lastFetchedAt).toLocaleString('en-NZ', { timeZone: 'Pacific/Auckland' })} NZDT`
+                  : ''}
+              </p>
+              <p className="break-all text-xs text-[var(--ink-muted)]">{s.url}</p>
+              <p className="text-xs text-[var(--ink-muted)]">
+                fetches {s.fetchCount ?? 0} · items {s.lastItemCount ?? '—'}
+                {s.lastDurationMs != null ? ` · ${s.lastDurationMs}ms` : ''}
+              </p>
+              {s.lastError && <p className="text-xs text-red-700">{s.lastError}</p>}
+              <SourceActions sourceId={s.id} enabled={s.enabled !== false} />
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* Desktop table */}
+      <div className="hidden overflow-x-auto border border-[var(--line)] bg-white/40 md:block">
         <table className="min-w-full text-sm">
-          <thead className="text-left text-xs uppercase tracking-[0.12em] text-[var(--ink-soft)] border-b border-[var(--line)]">
-            <tr>
-              <th className="px-3 py-2">Feed</th>
-              <th className="px-3 py-2">Source</th>
-              <th className="px-3 py-2">Kind / adapter</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Stats</th>
-              <th className="px-3 py-2">Last fetch</th>
-              <th className="px-3 py-2">Error</th>
-              <th className="px-3 py-2">Actions</th>
+          <thead className="border-b border-[var(--line)] text-left">
+            <tr className="section-label">
+              <th className="px-3 py-2.5 font-normal">Feed</th>
+              <th className="px-3 py-2.5 font-normal">Source</th>
+              <th className="px-3 py-2.5 font-normal">Kind / adapter</th>
+              <th className="px-3 py-2.5 font-normal">Status</th>
+              <th className="px-3 py-2.5 font-normal">Stats</th>
+              <th className="px-3 py-2.5 font-normal">Last fetch</th>
+              <th className="px-3 py-2.5 font-normal">Error</th>
+              <th className="px-3 py-2.5 font-normal">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {sources.map((s) => (
-              <tr key={s.id} className="border-b border-[var(--line)] align-top">
-                <td className="px-3 py-2">{feedMap[s.feedId]?.title || s.feedId}</td>
-                <td className="px-3 py-2">
-                  <div className="font-medium">
-                    {s.title}
-                    {s.enabled === false ? (
-                      <span className="ml-2 text-xs uppercase tracking-wide text-[var(--ink-soft)]">
-                        disabled
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="text-xs text-[var(--ink-soft)] break-all max-w-md">{s.url}</div>
-                </td>
-                <td className="px-3 py-2">
-                  <div>{s.kind}</div>
-                  <div className="text-xs text-[var(--ink-soft)]">{s.adapterId || '—'}</div>
-                </td>
-                <td className="px-3 py-2">
-                  <span
-                    className={`badge ${
-                      s.status === 'ok' ? 'badge-live' : s.status === 'error' ? 'badge-demo' : ''
-                    }`}
-                  >
-                    {s.status}
-                  </span>
-                </td>
-                <td className="px-3 py-2 text-xs text-[var(--ink-soft)] whitespace-nowrap">
-                  <div>fetches {s.fetchCount ?? 0}</div>
-                  <div>items {s.lastItemCount ?? '—'}</div>
-                  <div>
-                    {s.lastDurationMs != null ? `${s.lastDurationMs}ms` : '—'}
-                    {(s.consecutiveFailures || 0) > 0
-                      ? ` · fail×${s.consecutiveFailures}`
-                      : ''}
-                  </div>
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-xs">
-                  {s.lastFetchedAt
-                    ? new Date(s.lastFetchedAt).toLocaleString('en-NZ', {
-                        timeZone: 'Pacific/Auckland',
-                      })
-                    : '—'}
-                </td>
-                <td className="px-3 py-2 text-red-700 max-w-xs text-xs">{s.lastError || '—'}</td>
-                <td className="px-3 py-2">
-                  <SourceActions sourceId={s.id} enabled={s.enabled !== false} />
-                </td>
-              </tr>
-            ))}
+            {sources.map((s) => {
+              const feed = feedMap[s.feedId]
+              return (
+                <tr key={s.id} className="border-b border-[var(--line)] align-top">
+                  <td className="px-3 py-2.5">
+                    <div>{feed?.title || s.feedId}</div>
+                    {feed && (
+                      <div className="mt-1">
+                        <ModeBadge demo={feed.isDemo} />
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="font-medium">
+                      {s.title}
+                      {s.enabled === false ? (
+                        <span className="ml-2 text-xs uppercase tracking-wide text-[var(--ink-muted)]">
+                          disabled
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="max-w-md break-all text-xs text-[var(--ink-muted)]">{s.url}</div>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div>{s.kind}</div>
+                    <div className="text-xs text-[var(--ink-muted)]">{s.adapterId || '—'}</div>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span
+                      className={`badge ${
+                        s.status === 'ok' ? 'badge-live' : s.status === 'error' ? 'badge-demo' : ''
+                      }`}
+                    >
+                      {s.status}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-xs text-[var(--ink-muted)]">
+                    <div>fetches {s.fetchCount ?? 0}</div>
+                    <div>items {s.lastItemCount ?? '—'}</div>
+                    <div>
+                      {s.lastDurationMs != null ? `${s.lastDurationMs}ms` : '—'}
+                      {(s.consecutiveFailures || 0) > 0 ? ` · fail×${s.consecutiveFailures}` : ''}
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-xs text-[var(--ink-muted)]">
+                    {s.lastFetchedAt
+                      ? new Date(s.lastFetchedAt).toLocaleString('en-NZ', {
+                          timeZone: 'Pacific/Auckland',
+                        })
+                      : '—'}
+                  </td>
+                  <td className="max-w-xs px-3 py-2.5 text-xs text-red-700">{s.lastError || '—'}</td>
+                  <td className="px-3 py-2.5">
+                    <SourceActions sourceId={s.id} enabled={s.enabled !== false} />
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
 
       {recentRuns.length > 0 && (
-        <div className="border border-[var(--line)] bg-white/40 p-4 space-y-2">
+        <div className="space-y-2 border border-[var(--line)] bg-white/40 p-4">
           <h2 className="font-display text-2xl text-[var(--ink)]">Recent ingest runs</h2>
-          <ul className="text-sm space-y-1">
+          <ul className="space-y-1 text-sm">
             {recentRuns.map((run) => (
               <li key={run.id} className="text-[var(--ink-soft)]">
                 <span className="text-[var(--ink)]">{run.trigger}</span>
