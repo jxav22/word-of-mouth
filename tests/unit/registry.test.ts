@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { listAdapters, resolveAdapter } from '../../src/lib/sources/registry'
-import { redditListingUrl } from '../../src/lib/sources/reddit'
+import { redditListingUrl, redditRssUrl } from '../../src/lib/sources/reddit'
 
 describe('source registry', () => {
   it('lists built-in adapters', () => {
@@ -18,8 +18,9 @@ describe('source registry', () => {
     expect(resolveAdapter('demo', 'demo://x')?.id).toBe('demo')
   })
 
-  it('normalises reddit listing URLs', () => {
+  it('normalises reddit listing and RSS URLs', () => {
     expect(redditListingUrl('programming')).toContain('reddit.com/r/programming')
     expect(redditListingUrl('https://www.reddit.com/r/ai/')).toContain('.json')
+    expect(redditRssUrl('programming')).toContain('/r/programming/.rss')
   })
 })

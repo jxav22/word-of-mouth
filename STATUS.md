@@ -23,6 +23,7 @@ Updated: 2026-11-27 ~04:46 NZDT (ingestion)
 
 ## Partial
 - Live ingest quality depends on upstream RSS/Reddit availability; errors recorded per-source
+- Reddit public endpoints may 403/404 from some cloud egress IPs (rate-limit); adapter tries RSS then JSON and records failure cleanly. HN + Dev.to API + major RSS verified live from this environment.
 - Feedback only lightly adjusts relevance threshold (not full re-rank model)
 - E2E not yet proven green in this environment (Playwright browsers may need install)
 - Redis/job queue still deferred (in-process cron is reliable for single-node)
