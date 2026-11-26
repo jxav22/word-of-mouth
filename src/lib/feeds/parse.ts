@@ -31,12 +31,14 @@ function titleFromQuery(query: string): string {
   return cleaned.slice(0, 57).trim() + '…'
 }
 
+const SHORT_KEEP = new Set(['ai', 'ml', 'nz', 'hn', 'ui', 'ux', 'qa', 'sre', 'cve'])
+
 function extractKeywords(query: string): string[] {
   const tokens = query
     .toLowerCase()
     .replace(/[^a-z0-9+#.\s-]/g, ' ')
     .split(/\s+/)
-    .filter((t) => t.length > 2 && !STOP.has(t))
+    .filter((t) => !STOP.has(t) && (t.length > 2 || SHORT_KEEP.has(t)))
 
   const phrases: string[] = []
   const q = query.toLowerCase()

@@ -1,0 +1,9 @@
+node_modules
+.next
+data
+*.db
+*.db-*
+.git
+test-results
+playwright-report
+coverage
