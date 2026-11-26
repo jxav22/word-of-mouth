@@ -62,7 +62,7 @@ export function CreateFeedForm() {
 
       <div className="space-y-2">
         <label htmlFor="query" className="sr-only">
-          Natural language query
+          What should we listen for?
         </label>
         <textarea
           id="query"
