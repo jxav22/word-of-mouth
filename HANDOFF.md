@@ -16,7 +16,8 @@
 =======
 **Branch:** `feat/ui` → PR into `main`  
 **Working tree:** `/agent/repos/word-of-mouth`  
-**Updated:** Fri 27 Nov 2026 ~04:48 NZDT  
+**Updated:** Fri 27 Nov 2026 ~04:50 NZDT  
+**PR:** https://github.com/jxav22/word-of-mouth/pull/3  
 **Hard stop:** ~05:37 NZDT
 
 ## Ownership
