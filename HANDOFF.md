@@ -2,6 +2,7 @@
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
+**main HEAD:** `f8b94c1`  
 **Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~05:02 NZDT  
 **Hard stop:** ~05:37 NZDT · final verification ~05:32 NZDT
 
@@ -9,9 +10,9 @@
 | PR | State |
 | --- | --- |
 | #1–#5 | **MERGED** |
-| [#6](https://github.com/jxav22/word-of-mouth/pull/6) `feat/polish-gaps` | **MERGED** feedSlug (`a703c2b`); UI warnings may still land |
+| [#6](https://github.com/jxav22/word-of-mouth/pull/6) | **Landed on main** (`a703c2b`) — feedSlug API + tests (**55/55**). PR may still show open until GitHub closes; UI source-warning UX can still push to `feat/polish-gaps`. |
 
-Layout: keep `@fontsource` + `AppChrome`; never `next/font/google`.
+Layout: `@fontsource` + `AppChrome` only — never `next/font/google`.
 
 ## How to run
 ```bash
@@ -27,14 +28,11 @@ npx playwright install chromium && npm run build && WOM_DISABLE_SCHEDULER=1 npm 
 ## Test evidence
 | Check | Result |
 | --- | --- |
-| `npm test` (with #6) | **55/55** |
-| Prior e2e / build | **4/4** / green |
+| `npm test` | **55/55** (incl. search-slug) |
+| build / e2e (prior) | green / **4/4** |
 | Live ingest | QA 38/38; core up to 80 |
 | Docker | not verified |
 
-## Remaining
-- UI create/refresh per-source warning presentation (same `feat/polish-gaps` branch)
-- Docker compose smoke; Reddit/HN harden; deploy
-
-## Owner
-Core [bc-36b64192…](bc-36b64192-691a-5946-9a6e-059fadb961e2) · polish QA+UI on `feat/polish-gaps`
+## Remaining before hard stop
+- UI create/refresh per-source warnings (same branch / follow-up)
+- Final verification ~05:32
