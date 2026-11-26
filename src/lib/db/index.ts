@@ -10,6 +10,11 @@ const DB_PATH = process.env.WOM_DB_PATH || path.join(DATA_DIR, 'word-of-mouth.db
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
 let _sqlite: Database.Database | null = null
 
+function hasColumn(sqlite: Database.Database, table: string, column: string): boolean {
+  const rows = sqlite.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>
+  return rows.some((r) => r.name === column)
+}
+
 function ensureSchema(sqlite: Database.Database) {
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS feeds (
@@ -19,6 +24,7 @@ function ensureSchema(sqlite: Database.Database) {
       query TEXT NOT NULL,
       keywords TEXT NOT NULL,
       topics TEXT NOT NULL,
+      exclude_keywords TEXT NOT NULL DEFAULT '[]',
       relevance_threshold REAL NOT NULL DEFAULT 0.2,
       refresh_interval_min INTEGER NOT NULL DEFAULT 30,
       is_demo INTEGER NOT NULL DEFAULT 0,
@@ -48,6 +54,7 @@ function ensureSchema(sqlite: Database.Database) {
       canonical_url TEXT NOT NULL UNIQUE,
       title TEXT NOT NULL,
       summary TEXT NOT NULL,
+      summary_attribution TEXT,
       content_text TEXT NOT NULL,
       published_at TEXT,
       author TEXT,
@@ -68,22 +75,22 @@ function ensureSchema(sqlite: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_sources_feed ON sources(feed_id);
     CREATE INDEX IF NOT EXISTS idx_feed_items_feed ON feed_items(feed_id);
     CREATE INDEX IF NOT EXISTS idx_articles_url ON articles(canonical_url);
+    CREATE INDEX IF NOT EXISTS idx_articles_cluster ON articles(cluster_id);
   `)
 
-  // Additive migrations for existing DBs created before ingestion diagnostics columns.
-  const sourceCols = new Set(
-    sqlite.prepare(`PRAGMA table_info(sources)`).all().map((r) => (r as { name: string }).name),
-  )
-  const alterIfMissing = (name: string, ddl: string) => {
-    if (!sourceCols.has(name)) sqlite.exec(`ALTER TABLE sources ADD COLUMN ${ddl}`)
+  // Additive migrations for existing DBs (ingestion diagnostics + intelligence columns).
+  const alterIfMissing = (table: string, name: string, ddl: string) => {
+    if (!hasColumn(sqlite, table, name)) sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`)
   }
-  alterIfMissing('last_success_at', 'last_success_at TEXT')
-  alterIfMissing('fetch_count', 'fetch_count INTEGER NOT NULL DEFAULT 0')
-  alterIfMissing('consecutive_failures', 'consecutive_failures INTEGER NOT NULL DEFAULT 0')
-  alterIfMissing('last_duration_ms', 'last_duration_ms INTEGER')
-  alterIfMissing('last_item_count', 'last_item_count INTEGER')
-  alterIfMissing('adapter_id', 'adapter_id TEXT')
-  alterIfMissing('enabled', 'enabled INTEGER NOT NULL DEFAULT 1')
+  alterIfMissing('sources', 'last_success_at', 'last_success_at TEXT')
+  alterIfMissing('sources', 'fetch_count', 'fetch_count INTEGER NOT NULL DEFAULT 0')
+  alterIfMissing('sources', 'consecutive_failures', 'consecutive_failures INTEGER NOT NULL DEFAULT 0')
+  alterIfMissing('sources', 'last_duration_ms', 'last_duration_ms INTEGER')
+  alterIfMissing('sources', 'last_item_count', 'last_item_count INTEGER')
+  alterIfMissing('sources', 'adapter_id', 'adapter_id TEXT')
+  alterIfMissing('sources', 'enabled', 'enabled INTEGER NOT NULL DEFAULT 1')
+  alterIfMissing('feeds', 'exclude_keywords', `exclude_keywords TEXT NOT NULL DEFAULT '[]'`)
+  alterIfMissing('articles', 'summary_attribution', 'summary_attribution TEXT')
 }
 
 export function getSqlite() {

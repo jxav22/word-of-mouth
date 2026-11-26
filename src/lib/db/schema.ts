@@ -7,6 +7,7 @@ export const feeds = sqliteTable('feeds', {
   query: text('query').notNull(),
   keywords: text('keywords').notNull(), // JSON array
   topics: text('topics').notNull(), // JSON array
+  excludeKeywords: text('exclude_keywords').notNull().default('[]'), // JSON array
   relevanceThreshold: real('relevance_threshold').notNull().default(0.2),
   refreshIntervalMin: integer('refresh_interval_min').notNull().default(30),
   isDemo: integer('is_demo', { mode: 'boolean' }).notNull().default(false),
@@ -40,6 +41,7 @@ export const articles = sqliteTable('articles', {
   canonicalUrl: text('canonical_url').notNull().unique(),
   title: text('title').notNull(),
   summary: text('summary').notNull(),
+  summaryAttribution: text('summary_attribution'),
   contentText: text('content_text').notNull(),
   publishedAt: text('published_at'),
   author: text('author'),

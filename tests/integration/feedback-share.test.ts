@@ -47,9 +47,11 @@ describe('feedback + share integration', () => {
     expect(hits.length).toBeGreaterThan(0)
 
     const before = getFeedByIdOrSlug(feed.id)!.relevanceThreshold
-    setFeedback(feed.id, items[0]!.id, 'down')
+    const targetId = items[0]!.id
+    setFeedback(feed.id, targetId, 'down')
     const after = getFeedByIdOrSlug(feed.id)!.relevanceThreshold
     expect(after).toBeGreaterThan(before)
-    expect(getFeedItems(feed.id)[0]!.feedback).toBe('down')
+    // Re-rank may reorder; assert by id rather than list position
+    expect(getFeedItems(feed.id).find((i) => i.id === targetId)?.feedback).toBe('down')
   })
 })
