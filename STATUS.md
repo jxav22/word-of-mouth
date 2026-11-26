@@ -31,10 +31,10 @@ Updated: 2026-11-27 ~04:41 NZDT
 ## Defects
 - Search result links use feed id (works) not slug (cosmetic)
 
-## Verification (this VM)
-- `npm test` → 8/8 pass
-- `npm run build` → success
-- Push to `main` confirmed (`538b480`+ follow-ups)
+## Verification
+- Core `main`: `npm test` → **10/10**; `npm run build` → success
+- Foundation tree: vitest **10/10**, build OK, seed 4 demos, live POST ingested 46 / 0 errors
+- Foundation leftovers (`ef047ac`) cherry-picked onto `main` (short keywords, parse tests, `.dockerignore`)
 
 ## Roadmap
 1. Prove Playwright e2e smoke + Docker compose up
