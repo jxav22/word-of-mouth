@@ -51,7 +51,10 @@ export default function SearchPage() {
       <ul className="divide-y divide-[var(--line)] border border-[var(--line)] bg-white/35">
         {results.map((item) => (
           <li key={item.id} className="px-4 py-3">
-            <Link href={`/feeds/${item.feedId}/items/${item.articleId}`} className="font-display text-lg">
+            <Link
+              href={`/feeds/${item.feedId}/items/${item.articleId}`}
+              className="font-display text-lg hover:text-[var(--moss)]"
+            >
               {item.article.title}
             </Link>
             <p className="text-sm text-[var(--ink-soft)] line-clamp-2">{item.article.summary}</p>

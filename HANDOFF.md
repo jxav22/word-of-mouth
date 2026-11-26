@@ -1,12 +1,21 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**Working tree:** `/workspace`  
-**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:41 NZDT  
+**Working tree:** `/workspace` (owns `main`)  
+**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:42 NZDT  
 **Hard stop:** ~05:37 NZDT
 
 ## Status
-Vertical slice on `main` (push confirmed). Build green. Vitest 8/8 green. Core continuing polish (UI, e2e, STATUS honesty).
+`main` green and receiving Foundation leftovers (short NL keywords, parse tests, `.dockerignore`). Specialists on feature branches — no open PRs yet; will merge when opened if checks pass.
+
+| Branch / agent | Role |
+| --- | --- |
+| `main` / [core](bc-36b64192-691a-5946-9a6e-059fadb961e2) | Integration owner |
+| `feat/ingestion` / [bc-c331753b…](bc-c331753b-744c-5f9d-b860-7e6d38cf516e) | Ingest / SSRF / adapters |
+| `feat/intelligence` / [bc-499283ce…](bc-499283ce-d144-51c7-87d7-a1acd1e2f4ef) | Rank / cluster / summarise / NL |
+| `feat/ui` / [bc-bed2b221…](bc-bed2b221-68b3-52cd-ab30-633f105cb012) | UI polish |
+| `feat/qa` / [bc-a5f5c6ca…](bc-a5f5c6ca-3571-53ee-8b1f-51794227a980) | Tests / STATUS honesty |
+| `foundation/improvements` @ `ef047ac` | Stopped — leftovers cherry-picked onto main |
 
 ## How to run
 ```bash
@@ -19,23 +28,22 @@ docker compose up --build
 ```
 
 ## Test evidence
-| Check | Result |
-| --- | --- |
-| `npm test` (vitest unit+integration) | **8/8 pass** |
-| `npm run build` | **green** (Next.js 15.5.12 standalone) |
-| Playwright e2e | browsers may need `npx playwright install`; config present |
-| Docker compose | Dockerfile present; not verified in this VM yet |
+| Source | Check | Result |
+| --- | --- | --- |
+| Core (`main`) | `npm test` | **8/8** then **10/10** after parse tests land |
+| Core (`main`) | `npm run build` | **green** (Next 15.5.12 standalone) |
+| Foundation (their tree) | vitest | **10/10** |
+| Foundation | `next build` | OK |
+| Foundation | seed | **4 demo feeds** |
+| Foundation | live `POST /api/feeds` | ingested **46** items, **0 errors** |
+| Playwright e2e | | config present; browsers may need install |
+| Docker compose | | Dockerfile + `.dockerignore` present; compose not verified on this VM yet |
 
-## Implemented
-NL create → RSS/HN discover → ingest → rank/dedupe/summarise → 4 demo feeds → share/search/feedback → source diagnostics → SSRF → scheduler → Docker files → tests.
+## Gaps
+- Reddit adapter reserved
+- Feedback lightly adjusts threshold
+- E2E / Docker compose not yet proven here
+- Optional AI only with env keys
 
-## Gaps / partial
-- Reddit adapter reserved, not implemented
-- Live RSS quality depends on upstreams
-- Feedback lightly adjusts threshold only
-- E2E not yet proven in CI/this VM
-- Optional AI keys only; extractive fallback default
-
-## Owner
-[Word of Mouth core](bc-36b64192-691a-5946-9a6e-059fadb961e2) — remote + polish  
-Snapshot from [Foundation scaffold](bc-bcf367bd-4a98-5c7b-8b12-ca5af68df940)
+## Snapshot
+`/cursor/stores/bc-5ef5d8bf-cd17-4012-9c97-2592fe303a01/internal/word-of-mouth-snapshot.tgz` (Foundation-refreshed)
