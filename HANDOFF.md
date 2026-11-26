@@ -1,13 +1,15 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**QA branch:** `feat/qa` → PR into `main`  
-**Synced main base:** `748aafb`  
-**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; QA evidence ~04:45 NZDT  
+**main (origin):** `748aafb` (awaiting PR #1 merge)  
+**PR #1:** https://github.com/jxav22/word-of-mouth/pull/1 (`feat/qa`)  
+**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:47 NZDT  
 **Hard stop:** ~05:37 NZDT
 
 ## Status
-Vertical slice is on `main` and cloneable. QA expanded unit/integration/e2e coverage, wired Playwright into CI, and re-verified the run path on a clean agent VM. **Docker Compose was not run** — this VM has no Docker binary/socket; files exist but are unverified.
+- PR #1 CI **failed** on `next/font` Google loader (`Cannot read properties of null`) during `npm run build` (tests had passed).
+- Core fix in flight on `feat/qa`: switch to bundled `@fontsource/fraunces` + `@fontsource/sora` (no Google fetch at build). Local: **build green**, vitest **16/16**.
+- Will merge PR #1 into `main` when CI is green. Docker compose still **unverified** (no Docker on agent VMs).
 
 | Stream | Agent | Branch |
 | --- | --- | --- |
@@ -22,43 +24,24 @@ Vertical slice is on `main` and cloneable. QA expanded unit/integration/e2e cove
 git clone https://github.com/jxav22/word-of-mouth.git
 cd word-of-mouth
 npm install
-npm run dev          # http://localhost:3000 — demo feeds seed on boot
-# or
-npm run build && npm start   # scripts/start.sh (standalone-aware)
-# or (needs Docker)
-docker compose up --build
-```
-
-Playwright (first time on a machine):
-```bash
-npx playwright install chromium
-npm run build && npm run test:e2e
+npm run dev
+npm run build && npm start
+# docker compose up --build   # needs Docker; unverified on sprint VMs
+npx playwright install chromium && npm run test:e2e
 ```
 
 ## Test evidence
 | Source | Check | Result |
 | --- | --- | --- |
-| Core `main` (prior) | `npm test` / build / live ingest | **10/10**, green, up to **80 ingested / 0 errors** |
-| QA `feat/qa` | `npm test` | **16/16 pass** (added sanitize, summarise, feedback/share) |
-| QA | `npm run build` | **green** (Next 15.5.12 standalone) |
-| QA | `npm run seed` | **4 demo feeds** |
-| QA | `npm start` + curl | health ok; `/` 200 |
-| QA | live `POST /api/feeds` | **ingested 44 / ranked 44 / errors []** |
-| QA | feedback + share APIs | **ok** |
-| QA | `npm run test:e2e` | **4/4 pass** (home, health, sources/search, create→detail) |
-| QA | CI workflow | test + build + Playwright chromium e2e |
-| Docker compose | | **not verified** — no `docker` on QA VM |
+| Core / QA local | `npm test` | **16/16** |
+| Core local (font fix) | `npm run build` | **green** (bundled fonts) |
+| QA prior | e2e / live ingest | **4/4**, **44 ingested / 0 errors** |
+| Core prior | live ingest | up to **80 / 0 errors** |
+| GitHub Actions PR #1 | build | **failed** (google font loader) → fix pushed |
+| Docker compose | | **not verified** — no `docker` on VMs |
 
-## Implemented / partial / unimplemented
-See [STATUS.md](./STATUS.md).
-
-- **Implemented:** NL create → RSS/HN discover → ingest → rank/dedupe/summarise → demo feeds → share/search/feedback → SSRF → scheduler → Docker files → CI (test/build/e2e)
-- **Partial:** live RSS quality, light feedback refine, optional AI keys, search links by feed id
-- **Unimplemented:** Reddit adapter, Redis queue, auth, embeddings, proven compose smoke
-
-## Defects
-- No blocking product defects found in QA pass
-- Compose unverified in this environment
-
-## Snapshot
-`/cursor/stores/bc-5ef5d8bf-cd17-4012-9c97-2592fe303a01/internal/word-of-mouth-snapshot.tgz`
+## Gaps
+- Reddit adapter reserved (ingestion)
+- Light feedback refine (intelligence)
+- Compose smoke needs a Docker host
+- Optional AI keys only
