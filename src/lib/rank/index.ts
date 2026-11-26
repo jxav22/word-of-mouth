@@ -177,4 +177,27 @@ export function rankArticles<
     .sort((a, b) => b.score - a.score)
 }
 
+/**
+ * Soft diversity: after score sort, nudge later members of the same story
+ * cluster downward so one event does not monopolise the top of the feed.
+ */
+export function diversifyByCluster<
+  T extends { score: number; clusterId?: string | null },
+>(items: T[], penalty = 0.04): T[] {
+  const seen = new Map<string, number>()
+  return [...items]
+    .map((item) => {
+      const cid = item.clusterId
+      if (!cid) return { ...item }
+      const n = seen.get(cid) || 0
+      seen.set(cid, n + 1)
+      if (n === 0) return { ...item }
+      return {
+        ...item,
+        score: Math.round(Math.max(0, item.score - penalty * n) * 1000) / 1000,
+      }
+    })
+    .sort((a, b) => b.score - a.score)
+}
+
 export { tokenize }

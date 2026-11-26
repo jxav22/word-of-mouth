@@ -7,8 +7,8 @@ import { refreshFeed } from '../ingest/pipeline'
 import { DEMO_FEEDS } from '../demo/fixtures'
 import { summariseArticle } from '../summarise'
 import { clusterIdFor } from '../cluster/dedupe'
-import { rankArticles } from '../rank'
-import type { Feed, FeedItemView, Source } from '../types'
+import { diversifyByCluster, rankArticles } from '../rank'
+import type { Article, Feed, FeedItemView, Source } from '../types'
 
 function mapFeed(row: typeof schema.feeds.$inferSelect): Feed {
   return {
@@ -120,7 +120,11 @@ export function getFeedItems(feedId: string, opts?: { q?: string; limit?: number
     )
   }
 
-  return items.slice(0, limit)
+  // Story-cluster diversity for browse order (scores already persisted from ingest)
+  const diversified = diversifyByCluster(
+    items.map((i) => ({ ...i, clusterId: i.article.clusterId })),
+  )
+  return diversified.slice(0, limit)
 }
 
 export function getArticleForFeed(feedId: string, articleId: string): FeedItemView | null {

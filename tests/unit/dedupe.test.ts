@@ -36,8 +36,8 @@ describe('dedupe', () => {
     expect(duplicates.length).toBe(2)
   })
 
-  it('soft-near titles survive hard dedupe for clustering', () => {
-    const { kept } = dedupeArticles(
+  it('prefix-containment titles hard-dedupe; looser cousins survive for clustering', () => {
+    const contained = dedupeArticles(
       [
         { canonicalUrl: 'https://example.com/a', title: 'Remote platform engineer roles trending' },
         {
@@ -47,7 +47,19 @@ describe('dedupe', () => {
       ],
       0.78,
     )
-    expect(kept.length).toBe(2)
+    expect(contained.kept.length).toBe(1)
+
+    const cousins = dedupeArticles(
+      [
+        { canonicalUrl: 'https://example.com/a', title: 'OpenAI ships new evaluation harness' },
+        {
+          canonicalUrl: 'https://example.com/b',
+          title: 'Labs release model evaluation toolkit for LLM apps',
+        },
+      ],
+      0.78,
+    )
+    expect(cousins.kept.length).toBe(2)
   })
 
   it('clusters cross-source same story without dropping members', () => {

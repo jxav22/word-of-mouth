@@ -41,6 +41,12 @@ export default async function ItemDetailPage({ params }: Props) {
       <div className="panel p-5 space-y-3">
         <h2 className="text-xs uppercase tracking-[0.14em] text-[var(--ink-soft)]">Summary</h2>
         <p className="text-lg leading-relaxed text-[var(--ink)]">{a.summary}</p>
+        {a.summaryAttribution ? (
+          <p className="text-xs text-[var(--ink-soft)]">{a.summaryAttribution}</p>
+        ) : null}
+        {a.clusterId ? (
+          <p className="text-xs text-[var(--ink-soft)]">Story cluster · {a.clusterId}</p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
