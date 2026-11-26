@@ -2,12 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { FormEvent, useState, useTransition } from 'react'
+import { SourceWarningsBanner } from './SourceWarningsBanner'
 
 const EXAMPLES = [
   'Remote TypeScript jobs in New Zealand and APAC',
   'AI tooling and developer platform news',
   'Auckland tech meetups and local events',
 ]
+
+type IngestWarning = { title: string; kind?: string; message: string }
 
 export function CreateFeedForm() {
   const router = useRouter()
@@ -16,11 +19,13 @@ export function CreateFeedForm() {
   const [showTitle, setShowTitle] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
+  const [warnings, setWarnings] = useState<IngestWarning[]>([])
   const [pending, startTransition] = useTransition()
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setWarnings([])
     setStatus('Parsing query · discovering sources · ingesting…')
     startTransition(async () => {
       try {
@@ -31,15 +36,37 @@ export function CreateFeedForm() {
         })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || 'Create failed')
-        const ingestNote =
-          data.ingest?.errors?.length > 0
-            ? ` Created with ${data.ingest.errors.length} source warning(s).`
-            : ''
-        setStatus(`Feed ready.${ingestNote}`)
-        router.push(`/feeds/${data.feed.slug}`)
+
+        const rawErrors: string[] = data.ingest?.errors || []
+        const nextWarnings: IngestWarning[] = rawErrors.map((message) => {
+          const kindMatch = message.match(/\b(rss|hn|reddit|api|demo)\b/i)
+          return {
+            title: 'Source ingest',
+            kind: kindMatch?.[1]?.toLowerCase(),
+            message,
+          }
+        })
+        setWarnings(nextWarnings)
+
+        const ingested = data.ingest?.ingested ?? 0
+        const ranked = data.ingest?.ranked ?? 0
+        if (nextWarnings.length > 0) {
+          setStatus(
+            `Feed ready · ingested ${ingested}, ranked ${ranked} · ${nextWarnings.length} source warning(s). Opening feed…`,
+          )
+        } else {
+          setStatus(`Feed ready · ingested ${ingested}, ranked ${ranked}. Opening…`)
+        }
+
+        const slug = data.feed.slug as string
+        const qs = nextWarnings.length > 0 ? '?created=1&warnings=1' : '?created=1'
+        // Brief beat so the warning callout is readable before navigation
+        await new Promise((r) => setTimeout(r, nextWarnings.length > 0 ? 900 : 250))
+        router.push(`/feeds/${slug}${qs}`)
         router.refresh()
       } catch (err) {
         setStatus(null)
+        setWarnings([])
         setError(err instanceof Error ? err.message : 'Create failed')
       }
     })
@@ -120,6 +147,7 @@ export function CreateFeedForm() {
         </p>
       </div>
       {status && <p className="text-sm text-[var(--teal)]">{status}</p>}
+      {warnings.length > 0 && <SourceWarningsBanner warnings={warnings} justCreated />}
       {error && <p className="text-sm text-red-700">{error}</p>}
     </form>
   )
