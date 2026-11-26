@@ -28,7 +28,18 @@ export function jaccard(a: Set<string>, b: Set<string>): number {
 }
 
 export function titleSimilarity(a: string, b: string): number {
-  return jaccard(shingles(normalizeTitle(a)), shingles(normalizeTitle(b)))
+  const na = normalizeTitle(a)
+  const nb = normalizeTitle(b)
+  if (!na || !nb) return 0
+  if (na === nb) return 1
+
+  const tri = jaccard(shingles(na, 3), shingles(nb, 3))
+  const bi = jaccard(shingles(na, 2), shingles(nb, 2))
+  // Prefer shared phrasing; boost near-prefix / containment cases common in headlines.
+  const shorter = na.length <= nb.length ? na : nb
+  const longer = na.length <= nb.length ? nb : na
+  const containment = longer.includes(shorter) ? 0.85 : 0
+  return Math.max(tri, bi * 0.95, containment)
 }
 
 export type DedupeItem = {

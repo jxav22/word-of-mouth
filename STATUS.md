@@ -1,6 +1,6 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~04:37 NZDT
+Updated: 2026-11-27 ~04:41 NZDT
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
@@ -19,8 +19,8 @@ Updated: 2026-11-27 ~04:37 NZDT
 ## Partial
 - Live ingest quality depends on upstream RSS availability; some sources may error gracefully
 - Feedback only lightly adjusts relevance threshold (not full re-rank model)
-- E2E not yet proven green in this environment (Playwright browsers may need install)
-- GitHub push: `gh` token sees repo but lacks write (`permissions.push=false`); Cursor App grant may be required
+- E2E not yet proven green (Playwright browsers may need install)
+- Optional AI summarise only when env keys present
 
 ## Unimplemented / deferred
 - Reddit public adapter (kind reserved)
@@ -29,11 +29,14 @@ Updated: 2026-11-27 ~04:37 NZDT
 - Embedding-based ranking
 
 ## Defects
-- `gh` integration token cannot PATCH/push to `jxav22/word-of-mouth` yet
 - Search result links use feed id (works) not slug (cosmetic)
 
+## Verification (this VM)
+- `npm test` → 8/8 pass
+- `npm run build` → success
+- Push to `main` confirmed (`538b480`+ follow-ups)
+
 ## Roadmap
-1. Land push credentials / grant Cursor GitHub App on repo
-2. Prove `npm run build`, seed, `npm test`, e2e smoke
-3. Harden source adapters + richer feedback refine
-4. Deploy (Vercel or compose)
+1. Prove Playwright e2e smoke + Docker compose up
+2. Harden source adapters + richer feedback refine
+3. Deploy (Vercel or compose)

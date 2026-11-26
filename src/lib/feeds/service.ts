@@ -7,7 +7,7 @@ import { DEMO_FEEDS } from '../demo/fixtures'
 import { summariseArticle } from '../summarise'
 import { clusterIdFor } from '../cluster/dedupe'
 import { rankArticles } from '../rank'
-import type { Article, Feed, FeedItemView, Source } from '../types'
+import type { Feed, FeedItemView, Source } from '../types'
 
 function mapFeed(row: typeof schema.feeds.$inferSelect): Feed {
   return {
