@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - WOM_DATA_DIR=/app/data
+      - WOM_REFRESH_MINUTES=30
+      # Optional:
+      # - OPENAI_API_KEY=
+      # - ANTHROPIC_API_KEY=
+    volumes:
+      - wom-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  wom-data:
