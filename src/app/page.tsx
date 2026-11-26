@@ -27,8 +27,8 @@ export default async function HomePage() {
           <div className="hero-inner space-y-6">
             <div className="animate-rise max-w-3xl space-y-5">
               <BrandMark large inverted />
-              <h1 className="font-display text-[clamp(1.35rem,3.6vw,2.15rem)] leading-snug text-[var(--hero-mist)]">
-                Natural language in. A living feed out.
+              <h1 className="font-display text-[clamp(1.35rem,3.6vw,2.15rem)] leading-snug text-[var(--hero-mist)] text-balance">
+                Natural language in — a living feed out
               </h1>
               <p className="max-w-lg text-base leading-relaxed text-[var(--hero-muted)] sm:text-lg">
                 Describe what you care about. We discover sources, rank the signal, and keep a
