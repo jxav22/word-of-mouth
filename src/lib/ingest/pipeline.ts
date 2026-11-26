@@ -1,8 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { getDb, schema } from '../db'
-import { dedupeArticles, clusterIdFor } from '../cluster/dedupe'
+import { clusterStories, dedupeArticles, canonicalizeUrl } from '../cluster/dedupe'
 import { rankArticles } from '../rank'
+import { prefsFromFeedbackHistory } from '../feeds/refine'
 import { summariseArticle } from '../summarise'
 import { fetchWithAdapter } from '../sources/registry'
 import { normalizeArticles } from './normalize'
@@ -171,6 +172,7 @@ export async function refreshFeed(
 ): Promise<{
   ingested: number
   ranked: number
+  clusters: number
   errors: string[]
   sourcesAttempted: number
   durationMs: number
@@ -201,6 +203,7 @@ export async function refreshFeed(
 
   const keywords = JSON.parse(feed.keywords) as string[]
   const topics = JSON.parse(feed.topics) as string[]
+  const excludeKeywords = JSON.parse(feed.excludeKeywords || '[]') as string[]
   const errors: string[] = []
   const collected: Array<RawArticle & { sourceId: string }> = []
   const prefetched = new Map((opts?.prefetched || []).map((p) => [p.sourceId, p.articles]))
@@ -246,14 +249,34 @@ export async function refreshFeed(
     for (const article of result.articles) {
       collected.push({
         ...article,
+        canonicalUrl: canonicalizeUrl(article.canonicalUrl) || article.canonicalUrl,
         sourceId: source.id,
         sourceTitle: article.sourceTitle || source.title,
       })
     }
   }
 
-  const { kept } = dedupeArticles(collected)
-  const ranked = rankArticles(kept, keywords, topics, feed.relevanceThreshold)
+  // Hard dedupe exact/near-exact, then soft-cluster remaining for story ids
+  const { kept } = dedupeArticles(collected, 0.78)
+  const { clusters, indexed } = clusterStories(kept, 0.55)
+
+  const feedbackRows = db
+    .select({
+      feedback: schema.feedItems.feedback,
+      title: schema.articles.title,
+      contentText: schema.articles.contentText,
+    })
+    .from(schema.feedItems)
+    .innerJoin(schema.articles, eq(schema.feedItems.articleId, schema.articles.id))
+    .where(eq(schema.feedItems.feedId, feedId))
+    .all()
+  const prefs = prefsFromFeedbackHistory(feedbackRows)
+
+  const ranked = rankArticles(indexed, keywords, topics, feed.relevanceThreshold, {
+    excludeKeywords,
+    prefs,
+    queryText: `${feed.query} ${keywords.join(' ')}`,
+  })
 
   let ingested = 0
   for (const item of ranked.slice(0, 80)) {
@@ -266,23 +289,34 @@ export async function refreshFeed(
     let articleId = existing?.id
     if (!existing) {
       articleId = nanoid()
-      const { summary } = await summariseArticle(item.title, item.contentText, keywords)
+      const { summary, attribution, provider } = await summariseArticle(item.title, item.contentText, {
+        keywords,
+        sourceTitle: item.sourceTitle,
+        author: item.author,
+      })
       db.insert(schema.articles)
         .values({
           id: articleId,
           canonicalUrl: item.canonicalUrl,
           title: item.title,
           summary,
+          summaryAttribution: attribution,
           contentText: item.contentText,
           publishedAt: item.publishedAt || null,
           author: item.author || null,
           sourceId: item.sourceId,
           sourceTitle: item.sourceTitle,
           isDemo: Boolean(item.isDemo),
-          clusterId: clusterIdFor(item.title),
+          clusterId: item.clusterId,
         })
         .run()
       ingested++
+      void provider
+    } else if (!existing.clusterId && item.clusterId) {
+      db.update(schema.articles)
+        .set({ clusterId: item.clusterId })
+        .where(eq(schema.articles.id, existing.id))
+        .run()
     }
 
     const alreadyLinked = db
@@ -292,6 +326,9 @@ export async function refreshFeed(
       .all()
       .find((fi) => fi.articleId === articleId)
 
+    const reasons = [...item.reasons]
+    if (item.clusterId) reasons.push(`cluster:${item.clusterId}`)
+
     if (!alreadyLinked && articleId) {
       db.insert(schema.feedItems)
         .values({
@@ -299,14 +336,14 @@ export async function refreshFeed(
           feedId,
           articleId,
           score: item.score,
-          reasons: JSON.stringify(item.reasons),
+          reasons: JSON.stringify(reasons.slice(0, 8)),
           feedback: null,
           seenAt: null,
         })
         .run()
     } else if (alreadyLinked) {
       db.update(schema.feedItems)
-        .set({ score: item.score, reasons: JSON.stringify(item.reasons) })
+        .set({ score: item.score, reasons: JSON.stringify(reasons.slice(0, 8)) })
         .where(eq(schema.feedItems.id, alreadyLinked.id))
         .run()
     }
@@ -331,6 +368,7 @@ export async function refreshFeed(
   return {
     ingested,
     ranked: ranked.length,
+    clusters: clusters.length,
     errors,
     sourcesAttempted: feedSources.length,
     durationMs,

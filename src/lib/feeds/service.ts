@@ -2,6 +2,7 @@ import { eq, desc, like, or, and, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { getDb, schema } from '../db'
 import { parseFeedQuery, makeSlug } from './parse'
+import { refineFromFeedback, prefsFromFeedbackHistory } from './refine'
 import { refreshFeed } from '../ingest/pipeline'
 import { DEMO_FEEDS } from '../demo/fixtures'
 import { summariseArticle } from '../summarise'
@@ -17,6 +18,7 @@ function mapFeed(row: typeof schema.feeds.$inferSelect): Feed {
     query: row.query,
     keywords: JSON.parse(row.keywords) as string[],
     topics: JSON.parse(row.topics) as string[],
+    excludeKeywords: JSON.parse(row.excludeKeywords || '[]') as string[],
     relevanceThreshold: row.relevanceThreshold,
     refreshIntervalMin: row.refreshIntervalMin,
     isDemo: row.isDemo,
@@ -43,6 +45,23 @@ function mapSource(row: typeof schema.sources.$inferSelect): Source {
     lastItemCount: row.lastItemCount,
     adapterId: row.adapterId,
     enabled: row.enabled !== false,
+  }
+}
+
+function mapArticle(article: typeof schema.articles.$inferSelect): Article {
+  return {
+    id: article.id,
+    canonicalUrl: article.canonicalUrl,
+    title: article.title,
+    summary: article.summary,
+    summaryAttribution: article.summaryAttribution,
+    contentText: article.contentText,
+    publishedAt: article.publishedAt,
+    author: article.author,
+    sourceId: article.sourceId,
+    sourceTitle: article.sourceTitle,
+    isDemo: article.isDemo,
+    clusterId: article.clusterId,
   }
 }
 
@@ -172,19 +191,7 @@ export function getFeedItems(feedId: string, opts?: { q?: string; limit?: number
     reasons: JSON.parse(item.reasons) as string[],
     feedback: (item.feedback as 'up' | 'down' | null) || null,
     seenAt: item.seenAt,
-    article: {
-      id: article.id,
-      canonicalUrl: article.canonicalUrl,
-      title: article.title,
-      summary: article.summary,
-      contentText: article.contentText,
-      publishedAt: article.publishedAt,
-      author: article.author,
-      sourceId: article.sourceId,
-      sourceTitle: article.sourceTitle,
-      isDemo: article.isDemo,
-      clusterId: article.clusterId,
-    },
+    article: mapArticle(article),
   }))
 
   if (opts?.q) {
@@ -208,7 +215,12 @@ export async function createFeed(input: {
   query: string
   title?: string
   ingest?: boolean
-}): Promise<{ feed: Feed; ingest?: { ingested: number; ranked: number; errors: string[] } }> {
+}): Promise<{
+  feed: Feed
+  configQuality: number
+  intent: string
+  ingest?: { ingested: number; ranked: number; clusters: number; errors: string[] }
+}> {
   const parsed = parseFeedQuery(input.query, input.title)
   const db = getDb()
   const now = new Date().toISOString()
@@ -224,6 +236,7 @@ export async function createFeed(input: {
       query: input.query.trim(),
       keywords: JSON.stringify(parsed.keywords),
       topics: JSON.stringify(parsed.topics),
+      excludeKeywords: JSON.stringify(parsed.excludeKeywords),
       relevanceThreshold: parsed.relevanceThreshold,
       refreshIntervalMin: 30,
       isDemo: false,
@@ -254,7 +267,12 @@ export async function createFeed(input: {
   }
 
   const feed = getFeedByIdOrSlug(id)!
-  return { feed, ingest: ingestResult }
+  return {
+    feed,
+    configQuality: parsed.configQuality,
+    intent: parsed.intent,
+    ingest: ingestResult,
+  }
 }
 
 export function ensureShareToken(feedId: string): string {
@@ -267,31 +285,121 @@ export function ensureShareToken(feedId: string): string {
   return token
 }
 
+/** Re-score existing feed items after keyword / threshold / prefs change. */
+export function rerankFeedItems(feedId: string): number {
+  const db = getDb()
+  const feed = db.select().from(schema.feeds).where(eq(schema.feeds.id, feedId)).get()
+  if (!feed) throw new Error('Feed not found')
+
+  const keywords = JSON.parse(feed.keywords) as string[]
+  const topics = JSON.parse(feed.topics) as string[]
+  const excludeKeywords = JSON.parse(feed.excludeKeywords || '[]') as string[]
+
+  const rows = db
+    .select({
+      item: schema.feedItems,
+      article: schema.articles,
+    })
+    .from(schema.feedItems)
+    .innerJoin(schema.articles, eq(schema.feedItems.articleId, schema.articles.id))
+    .where(eq(schema.feedItems.feedId, feedId))
+    .all()
+
+  const prefs = prefsFromFeedbackHistory(
+    rows.map(({ item, article }) => ({
+      feedback: item.feedback,
+      title: article.title,
+      contentText: article.contentText,
+    })),
+  )
+
+  const ranked = rankArticles(
+    rows.map(({ article }) => ({
+      id: article.id,
+      title: article.title,
+      contentText: article.contentText,
+      publishedAt: article.publishedAt,
+      canonicalUrl: article.canonicalUrl,
+      sourceTitle: article.sourceTitle,
+    })),
+    keywords,
+    topics,
+    0, // keep all linked items; threshold applies on ingest
+    {
+      excludeKeywords,
+      prefs,
+      queryText: `${feed.query} ${keywords.join(' ')}`,
+    },
+  )
+
+  const byArticle = new Map(ranked.map((r) => [r.id, r]))
+  let updated = 0
+  for (const { item, article } of rows) {
+    const scored = byArticle.get(article.id)
+    if (!scored) continue
+    db.update(schema.feedItems)
+      .set({
+        score: scored.score,
+        reasons: JSON.stringify(scored.reasons),
+      })
+      .where(eq(schema.feedItems.id, item.id))
+      .run()
+    updated++
+  }
+  return updated
+}
+
 export function setFeedback(feedId: string, itemId: string, vote: 'up' | 'down' | null) {
   const db = getDb()
   const item = db.select().from(schema.feedItems).where(eq(schema.feedItems.id, itemId)).get()
   if (!item || item.feedId !== feedId) throw new Error('Item not found')
+
+  const article = db
+    .select()
+    .from(schema.articles)
+    .where(eq(schema.articles.id, item.articleId))
+    .get()
+  if (!article) throw new Error('Article not found')
+
   db.update(schema.feedItems)
     .set({ feedback: vote })
     .where(eq(schema.feedItems.id, itemId))
     .run()
 
-  // Light refine: bump threshold slightly on downs, ease on ups
   const feed = db.select().from(schema.feeds).where(eq(schema.feeds.id, feedId)).get()
-  if (feed) {
-    let threshold = feed.relevanceThreshold
-    if (vote === 'down') threshold = Math.min(0.6, threshold + 0.02)
-    if (vote === 'up') threshold = Math.max(0.05, threshold - 0.01)
-    db.update(schema.feeds)
-      .set({ relevanceThreshold: threshold, updatedAt: new Date().toISOString() })
-      .where(eq(schema.feeds.id, feedId))
-      .run()
-  }
+  if (!feed) throw new Error('Feed not found')
+
+  const refined = refineFromFeedback({
+    keywords: JSON.parse(feed.keywords) as string[],
+    excludeKeywords: JSON.parse(feed.excludeKeywords || '[]') as string[],
+    relevanceThreshold: feed.relevanceThreshold,
+    vote,
+    articleTitle: article.title,
+    articleContent: article.contentText,
+  })
+
+  db.update(schema.feeds)
+    .set({
+      keywords: JSON.stringify(refined.keywords),
+      excludeKeywords: JSON.stringify(refined.excludeKeywords),
+      relevanceThreshold: refined.relevanceThreshold,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(schema.feeds.id, feedId))
+    .run()
+
+  const reranked = rerankFeedItems(feedId)
+  return { refined, reranked }
 }
 
 export function patchFeed(
   feedId: string,
-  patch: { keywords?: string[]; relevanceThreshold?: number; title?: string },
+  patch: {
+    keywords?: string[]
+    excludeKeywords?: string[]
+    relevanceThreshold?: number
+    title?: string
+  },
 ): Feed {
   const db = getDb()
   const feed = db.select().from(schema.feeds).where(eq(schema.feeds.id, feedId)).get()
@@ -299,6 +407,9 @@ export function patchFeed(
   db.update(schema.feeds)
     .set({
       keywords: patch.keywords ? JSON.stringify(patch.keywords) : feed.keywords,
+      excludeKeywords: patch.excludeKeywords
+        ? JSON.stringify(patch.excludeKeywords)
+        : feed.excludeKeywords,
       relevanceThreshold:
         patch.relevanceThreshold !== undefined ? patch.relevanceThreshold : feed.relevanceThreshold,
       title: patch.title ?? feed.title,
@@ -306,11 +417,14 @@ export function patchFeed(
     })
     .where(eq(schema.feeds.id, feedId))
     .run()
+  if (patch.keywords || patch.excludeKeywords || patch.relevanceThreshold !== undefined) {
+    rerankFeedItems(feedId)
+  }
   return getFeedByIdOrSlug(feedId)!
 }
 
 export function searchAll(q: string, feedId?: string) {
-  const feeds = feedId ? [getFeedByIdOrSlug(feedId)].filter(Boolean) as Feed[] : listFeeds()
+  const feeds = feedId ? ([getFeedByIdOrSlug(feedId)].filter(Boolean) as Feed[]) : listFeeds()
   const results: FeedItemView[] = []
   for (const feed of feeds) {
     results.push(...getFeedItems(feed.id, { q, limit: 30 }))
@@ -351,6 +465,7 @@ export async function seedDemoFeeds(force = false): Promise<Feed[]> {
         query: demo.query,
         keywords: JSON.stringify(demo.keywords),
         topics: JSON.stringify(demo.topics),
+        excludeKeywords: JSON.stringify([]),
         relevanceThreshold: 0.1,
         refreshIntervalMin: 60,
         isDemo: true,
@@ -374,7 +489,6 @@ export async function seedDemoFeeds(force = false): Promise<Feed[]> {
       })
       .run()
 
-    // Also attach live HN discovery for demo feeds (best-effort later refresh)
     const hnQuery = encodeURIComponent(demo.keywords.slice(0, 3).join(' '))
     db.insert(schema.sources)
       .values({
@@ -389,16 +503,23 @@ export async function seedDemoFeeds(force = false): Promise<Feed[]> {
       })
       .run()
 
-    const ranked = rankArticles(demo.articles, demo.keywords, demo.topics, 0.05)
+    const ranked = rankArticles(demo.articles, demo.keywords, demo.topics, 0.05, {
+      queryText: `${demo.query} ${demo.keywords.join(' ')}`,
+    })
     for (const article of ranked) {
       const articleId = nanoid()
-      const { summary } = await summariseArticle(article.title, article.contentText, demo.keywords)
+      const { summary, attribution } = await summariseArticle(article.title, article.contentText, {
+        keywords: demo.keywords,
+        sourceTitle: article.sourceTitle,
+        author: article.author,
+      })
       db.insert(schema.articles)
         .values({
           id: articleId,
           canonicalUrl: article.canonicalUrl,
           title: article.title,
           summary,
+          summaryAttribution: attribution,
           contentText: article.contentText,
           publishedAt: article.publishedAt || null,
           author: article.author || null,
@@ -452,7 +573,6 @@ export function healthPayload() {
   }
 }
 
-// silence unused import warnings for drizzle helpers kept for future filters
 void like
 void or
 void and

@@ -1,3 +1,5 @@
+import { createHash } from 'crypto'
+
 function normalizeTitle(title: string): string {
   return title
     .toLowerCase()
@@ -42,6 +44,39 @@ export function titleSimilarity(a: string, b: string): number {
   return Math.max(tri, bi * 0.95, containment)
 }
 
+/** Strip tracking params / fragments / trailing slash for cross-source URL identity. */
+export function canonicalizeUrl(raw: string): string {
+  try {
+    const u = new URL(raw.trim())
+    u.hash = ''
+    const drop = [
+      'utm_source',
+      'utm_medium',
+      'utm_campaign',
+      'utm_term',
+      'utm_content',
+      'fbclid',
+      'gclid',
+      'mc_cid',
+      'mc_eid',
+      'ref',
+      'ref_src',
+    ]
+    for (const k of drop) u.searchParams.delete(k)
+    // sort remaining params for stable identity
+    const params = [...u.searchParams.entries()].sort(([a], [b]) => a.localeCompare(b))
+    u.search = ''
+    for (const [k, v] of params) u.searchParams.append(k, v)
+    let host = u.hostname.toLowerCase().replace(/^www\./, '')
+    u.hostname = host
+    let path = u.pathname.replace(/\/+$/, '') || '/'
+    u.pathname = path
+    return u.toString().toLowerCase()
+  } catch {
+    return raw.trim().replace(/\/$/, '').toLowerCase()
+  }
+}
+
 export type DedupeItem = {
   canonicalUrl: string
   title: string
@@ -52,7 +87,7 @@ export type DedupeResult<T extends DedupeItem> = {
   duplicates: Array<{ item: T; ofUrl: string; similarity: number }>
 }
 
-/** Keep first occurrence; drop near-duplicate titles or exact URLs. */
+/** Keep first occurrence; drop near-duplicate titles or exact (canonical) URLs. */
 export function dedupeArticles<T extends DedupeItem>(
   items: T[],
   threshold = 0.72,
@@ -62,7 +97,7 @@ export function dedupeArticles<T extends DedupeItem>(
   const seenUrls = new Set<string>()
 
   for (const item of items) {
-    const url = item.canonicalUrl.trim().replace(/\/$/, '').toLowerCase()
+    const url = canonicalizeUrl(item.canonicalUrl)
     if (seenUrls.has(url)) {
       duplicates.push({ item, ofUrl: url, similarity: 1 })
       continue
@@ -92,4 +127,117 @@ export function dedupeArticles<T extends DedupeItem>(
 export function clusterIdFor(title: string): string {
   const norm = normalizeTitle(title).split(' ').slice(0, 8).join('-')
   return `c_${norm.slice(0, 48) || 'misc'}`
+}
+
+export type ClusterMember<T> = T & { clusterId: string; clusterSimilarity: number }
+
+export type StoryCluster<T extends DedupeItem> = {
+  id: string
+  representative: T
+  members: ClusterMember<T>[]
+}
+
+/**
+ * Group near-duplicate / same-story articles across sources.
+ * Unlike dedupeArticles (which drops), this keeps members and assigns a shared clusterId.
+ * Union-find over title similarity + canonical URL identity.
+ */
+export function clusterStories<T extends DedupeItem>(
+  items: T[],
+  similarityThreshold = 0.55,
+): {
+  clusters: StoryCluster<T>[]
+  indexed: ClusterMember<T>[]
+} {
+  const n = items.length
+  const parent = Array.from({ length: n }, (_, i) => i)
+
+  function find(i: number): number {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]]
+      i = parent[i]
+    }
+    return i
+  }
+  function union(a: number, b: number) {
+    const ra = find(a)
+    const rb = find(b)
+    if (ra !== rb) parent[rb] = ra
+  }
+
+  const urls = items.map((it) => canonicalizeUrl(it.canonicalUrl))
+  const urlFirst = new Map<string, number>()
+  for (let i = 0; i < n; i++) {
+    const prev = urlFirst.get(urls[i])
+    if (prev !== undefined) union(prev, i)
+    else urlFirst.set(urls[i], i)
+  }
+
+  // Pairwise title similarity — O(n²) fine for ingest batches ≤ ~200
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      if (find(i) === find(j)) continue
+      const sim = titleSimilarity(items[i].title, items[j].title)
+      if (sim >= similarityThreshold) union(i, j)
+    }
+  }
+
+  const groups = new Map<number, number[]>()
+  for (let i = 0; i < n; i++) {
+    const r = find(i)
+    const list = groups.get(r) || []
+    list.push(i)
+    groups.set(r, list)
+  }
+
+  const clusters: StoryCluster<T>[] = []
+  const indexed: ClusterMember<T>[] = new Array(n)
+
+  for (const indices of groups.values()) {
+    const rootItem = items[indices[0]]
+    const idSeed = normalizeTitle(rootItem.title).split(' ').slice(0, 6).join(' ')
+    const hash = createHash('sha1').update(idSeed || urls[indices[0]]).digest('hex').slice(0, 10)
+    const id = `c_${hash}`
+
+    const members: ClusterMember<T>[] = indices.map((i) => {
+      const sim = titleSimilarity(items[i].title, rootItem.title)
+      const member: ClusterMember<T> = {
+        ...items[i],
+        clusterId: id,
+        clusterSimilarity: Math.round(sim * 1000) / 1000,
+      }
+      indexed[i] = member
+      return member
+    })
+
+    // Representative: prefer longer content-ish title uniqueness; first is fine, refine by URL host diversity later
+    clusters.push({
+      id,
+      representative: members[0],
+      members,
+    })
+  }
+
+  return { clusters, indexed }
+}
+
+/**
+ * Collapse each story cluster to its best-scored member (requires pre-scored items).
+ * Use after ranking when the feed should show one card per story.
+ */
+export function pickClusterRepresentatives<
+  T extends DedupeItem & { score: number; clusterId?: string },
+>(items: T[]): T[] {
+  const best = new Map<string, T>()
+  const singles: T[] = []
+  for (const item of items) {
+    const cid = item.clusterId
+    if (!cid) {
+      singles.push(item)
+      continue
+    }
+    const prev = best.get(cid)
+    if (!prev || item.score > prev.score) best.set(cid, item)
+  }
+  return [...singles, ...best.values()].sort((a, b) => b.score - a.score)
 }

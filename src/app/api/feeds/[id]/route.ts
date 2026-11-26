@@ -24,6 +24,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
   try {
     const body = (await req.json()) as {
       keywords?: string[]
+      excludeKeywords?: string[]
       relevanceThreshold?: number
       title?: string
     }
