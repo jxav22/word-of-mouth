@@ -45,6 +45,13 @@ function subredditFromInput(input: string): string | null {
 /** Prefer public subreddit RSS (more reliable than .json which often 403s). */
 export function redditRssUrl(input: string): string {
   const sub = subredditFromInput(input) || 'programming'
+  // `/r/{sub}.rss` (no slash) is the form that still returns Atom today
+  return `https://www.reddit.com/r/${encodeURIComponent(sub)}.rss`
+}
+
+/** Alternate classic path — try when the primary form fails. */
+export function redditRssUrlAlt(input: string): string {
+  const sub = subredditFromInput(input) || 'programming'
   return `https://www.reddit.com/r/${encodeURIComponent(sub)}/.rss`
 }
 
@@ -114,19 +121,26 @@ export async function fetchReddit(url: string, sourceTitle: string): Promise<{
   error?: string
   meta?: { adapter: string; fetchedBytes?: number; itemCount?: number }
 }> {
-  // 1) RSS first — public and usually allowed without cookies
-  const rss = await fetchRss(redditRssUrl(url), sourceTitle)
-  if (!rss.error && rss.articles.length > 0) {
-    return {
-      articles: rss.articles.map((a) => ({
-        ...a,
-        sourceTitle: a.sourceTitle || sourceTitle,
-      })),
-      meta: { adapter: 'reddit', itemCount: rss.articles.length, ...rss.meta },
+  // Reddit often answers RSS with HTTP 404 + a valid Atom body — accept 404 when feed-shaped.
+  const rssOpts = { acceptStatuses: [404] }
+  const rssCandidates = [redditRssUrl(url), redditRssUrlAlt(url)]
+  let lastRssError: string | undefined
+
+  for (const candidate of rssCandidates) {
+    const rss = await fetchRss(candidate, sourceTitle, rssOpts)
+    if (!rss.error && rss.articles.length > 0) {
+      return {
+        articles: rss.articles.map((a) => ({
+          ...a,
+          sourceTitle: a.sourceTitle || sourceTitle,
+        })),
+        meta: { adapter: 'reddit', itemCount: rss.articles.length, ...rss.meta },
+      }
     }
+    lastRssError = rss.error || 'empty feed'
   }
 
-  // 2) JSON listing fallback
+  // JSON listing fallback
   const listingUrl = redditListingUrl(url)
   const fetched = await safeFetch(listingUrl, {
     headers: {
@@ -138,8 +152,8 @@ export async function fetchReddit(url: string, sourceTitle: string): Promise<{
 
   return {
     articles: [],
-    error: rss.error
-      ? `rss: ${rss.error}; json: ${fetched.reason}`
+    error: lastRssError
+      ? `rss: ${lastRssError}; json: ${fetched.reason}`
       : fetched.reason,
   }
 }

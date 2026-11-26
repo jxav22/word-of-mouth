@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { redditListingUrl, redditRssUrl } from '@/lib/sources/reddit'
+import { redditListingUrl, redditRssUrl, redditRssUrlAlt } from '@/lib/sources/reddit'
 
 describe('reddit URL helpers', () => {
   it('builds public RSS URL from subreddit slug', () => {
     expect(redditRssUrl('MachineLearning')).toBe(
+      'https://www.reddit.com/r/MachineLearning.rss',
+    )
+    expect(redditRssUrlAlt('MachineLearning')).toBe(
       'https://www.reddit.com/r/MachineLearning/.rss',
     )
   })
@@ -16,7 +19,7 @@ describe('reddit URL helpers', () => {
 
   it('normalizes full reddit.com paths', () => {
     expect(redditRssUrl('https://www.reddit.com/r/startups/')).toBe(
-      'https://www.reddit.com/r/startups/.rss',
+      'https://www.reddit.com/r/startups.rss',
     )
   })
 })

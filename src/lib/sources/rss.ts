@@ -11,13 +11,26 @@ const parser = new Parser({
   },
 })
 
-export async function fetchRss(url: string, sourceTitle: string): Promise<{
+export async function fetchRss(
+  url: string,
+  sourceTitle: string,
+  opts?: { acceptStatuses?: number[] },
+): Promise<{
   articles: RawArticle[]
   error?: string
   meta?: SourceAdapterResult['meta']
 }> {
-  const fetched = await safeFetch(url)
+  const fetched = await safeFetch(url, {}, { acceptStatuses: opts?.acceptStatuses })
   if (!fetched.ok) return { articles: [], error: fetched.reason }
+
+  // Reddit sometimes returns HTTP 404 with a real Atom body — reject HTML error pages.
+  if (
+    opts?.acceptStatuses?.length &&
+    !/<(rss|feed|rdf:RDF)\b/i.test(fetched.text) &&
+    !fetched.text.trimStart().startsWith('<?xml')
+  ) {
+    return { articles: [], error: `HTTP ${fetched.response.status} (non-feed body)` }
+  }
 
   try {
     const feed = await parser.parseString(fetched.text)

@@ -189,11 +189,18 @@ async function readLimited(
 export async function safeFetch(
   rawUrl: string,
   init: RequestInit = {},
-  opts: { timeoutMs?: number; maxBytes?: number; maxRedirects?: number } = {},
+  opts: {
+    timeoutMs?: number
+    maxBytes?: number
+    maxRedirects?: number
+    /** Extra HTTP statuses to treat as readable (e.g. Reddit RSS often 404s with valid Atom). */
+    acceptStatuses?: number[]
+  } = {},
 ): Promise<{ ok: true; response: Response; text: string } | { ok: false; reason: string }> {
   const timeoutMs = opts.timeoutMs ?? 12_000
   const maxBytes = opts.maxBytes ?? 1_500_000
   const maxRedirects = opts.maxRedirects ?? MAX_REDIRECTS
+  const acceptStatuses = new Set(opts.acceptStatuses || [])
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -226,7 +233,7 @@ export async function safeFetch(
         continue
       }
 
-      if (response.status >= 400) {
+      if (response.status >= 400 && !acceptStatuses.has(response.status)) {
         return { ok: false, reason: `HTTP ${response.status}` }
       }
 

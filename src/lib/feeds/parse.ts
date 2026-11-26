@@ -305,21 +305,21 @@ function discoverSources(
   if (topics.includes('ai') || /ai|llm|ml/.test(q)) {
     sources.push({
       kind: 'reddit',
-      url: 'https://www.reddit.com/r/MachineLearning/.rss',
+      url: 'https://www.reddit.com/r/MachineLearning.rss',
       title: 'r/MachineLearning',
     })
   }
   if (topics.includes('startups') || /startup|saas|funding/.test(q)) {
     sources.push({
       kind: 'reddit',
-      url: 'https://www.reddit.com/r/startups/.rss',
+      url: 'https://www.reddit.com/r/startups.rss',
       title: 'r/startups',
     })
   }
   if (topics.includes('employment') || /job|hiring|career/.test(q)) {
     sources.push({
       kind: 'reddit',
-      url: 'https://www.reddit.com/r/cscareerquestions/.rss',
+      url: 'https://www.reddit.com/r/cscareerquestions.rss',
       title: 'r/cscareerquestions',
     })
   }
@@ -343,7 +343,7 @@ function discoverSources(
   if (/\brust\b/.test(q) || keywords.some((k) => /\brust\b/i.test(k))) {
     sources.push({
       kind: 'reddit',
-      url: 'https://www.reddit.com/r/rust/.rss',
+      url: 'https://www.reddit.com/r/rust.rss',
       title: 'r/rust',
     })
   }

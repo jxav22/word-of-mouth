@@ -25,6 +25,6 @@ describe('source registry', () => {
   it('normalises reddit listing and RSS URLs', () => {
     expect(redditListingUrl('programming')).toContain('reddit.com/r/programming')
     expect(redditListingUrl('https://www.reddit.com/r/ai/')).toContain('.json')
-    expect(redditRssUrl('programming')).toContain('/r/programming/.rss')
+    expect(redditRssUrl('programming')).toContain('/r/programming.rss')
   })
 })
