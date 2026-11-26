@@ -76,7 +76,7 @@ export default function SearchPage() {
       {error && <p className="text-sm text-red-700">{error}</p>}
       <ul className="dense-list divide-y divide-[var(--line)]">
         {results.map((item) => {
-          const slug = slugById[item.feedId] || item.feedId
+          const slug = item.feedSlug || slugById[item.feedId] || item.feedId
           return (
             <li key={item.id} className="feed-row px-3 py-3.5 sm:px-4">
               <div className="flex flex-wrap items-center gap-2">

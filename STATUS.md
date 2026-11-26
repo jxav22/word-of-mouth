@@ -14,7 +14,7 @@ Updated: 2026-11-27 ~04:56 NZDT (final integration)
 ## Partial
 - Live ingest quality depends on upstreams; Reddit may 403 from some egress IPs
 - Optional AI summarise only with `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`
-- Search result links use feed **id** not slug (works; cosmetic)
+- Search API stamps `feedSlug`; search UI prefers slug over id (`feat/polish-gaps`)
 - Docker Compose files present but **not run** on sprint agent VMs (no Docker)
 
 ## Unimplemented / deferred

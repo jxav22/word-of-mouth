@@ -431,7 +431,9 @@ export function searchAll(q: string, feedId?: string) {
   const feeds = feedId ? ([getFeedByIdOrSlug(feedId)].filter(Boolean) as Feed[]) : listFeeds()
   const results: FeedItemView[] = []
   for (const feed of feeds) {
-    results.push(...getFeedItems(feed.id, { q, limit: 30 }))
+    for (const item of getFeedItems(feed.id, { q, limit: 30 })) {
+      results.push({ ...item, feedSlug: feed.slug })
+    }
   }
   return results.sort((a, b) => b.score - a.score).slice(0, 50)
 }
