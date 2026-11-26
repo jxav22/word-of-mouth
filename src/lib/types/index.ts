@@ -5,6 +5,7 @@ export type Feed = {
   query: string
   keywords: string[]
   topics: string[]
+  excludeKeywords: string[]
   relevanceThreshold: number
   refreshIntervalMin: number
   isDemo: boolean
@@ -31,6 +32,7 @@ export type Article = {
   canonicalUrl: string
   title: string
   summary: string
+  summaryAttribution?: string | null
   contentText: string
   publishedAt?: string | null
   author?: string | null

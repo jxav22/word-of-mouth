@@ -17,8 +17,13 @@ export async function POST(req: Request, ctx: Ctx) {
     if (body.vote !== 'up' && body.vote !== 'down' && body.vote !== null) {
       return NextResponse.json({ error: 'vote must be up|down|null' }, { status: 400 })
     }
-    setFeedback(feed.id, body.itemId, body.vote)
-    return NextResponse.json({ ok: true })
+    const result = setFeedback(feed.id, body.itemId, body.vote)
+    return NextResponse.json({
+      ok: true,
+      refined: result.refined,
+      reranked: result.reranked,
+      feed: getFeedByIdOrSlug(feed.id),
+    })
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Feedback failed' },
