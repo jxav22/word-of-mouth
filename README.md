@@ -63,5 +63,7 @@ npm run dev
 - SSRF guards, HTML sanitisation, prompt fencing
 - In-process refresh scheduler + source management APIs
 - Distinctive harbor-signal UI (`AppChrome`) with self-hosted Fraunces/Sora fonts
+- Soft-floor ranking keeps new feeds populated when nothing clears the relevance threshold
+- SourceWarningsBanner for upstream failures (Reddit often 403/429)
 
 See [STATUS.md](./STATUS.md) and [HANDOFF.md](./HANDOFF.md) for honesty on partials and gaps.

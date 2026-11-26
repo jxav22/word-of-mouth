@@ -29,6 +29,7 @@ export default async function FeedDetailPage({ params, searchParams }: Props) {
   const errSources = sources.filter((s) => s.status === 'error')
   const justCreated = sp.created === '1'
   const warnings = mapErrorSourcesToWarnings(errSources)
+  const softFloored = items.some((it) => it.reasons?.includes('soft-floor'))
 
   return (
     <div className="space-y-8">
@@ -81,6 +82,12 @@ export default async function FeedDetailPage({ params, searchParams }: Props) {
             <h2 className="font-display text-2xl">Ranked items</h2>
             <p className="section-label">{items.length} items</p>
           </div>
+          {softFloored ? (
+            <p className="text-sm text-[var(--ink-muted)]" role="note">
+              Some items are below the usual relevance threshold (soft-floor) so this feed is not empty after
+              ingest. Down-vote noise or raise the threshold under Keywords &amp; threshold.
+            </p>
+          ) : null}
           <FeedSearch feedSlug={feed.slug} items={items} />
         </div>
         <aside className="h-fit space-y-3 border-t border-[var(--line)] pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
