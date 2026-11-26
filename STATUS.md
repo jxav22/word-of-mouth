@@ -1,6 +1,6 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~05:30 NZDT · freeze tip `083f633`
+Updated: 2026-11-27 ~05:30 NZDT · freeze tip `94da576`
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)

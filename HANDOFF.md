@@ -1,7 +1,7 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**main HEAD:** `083f633` (`083f633a2de0b079edea86527a89f40ec1ddfdea`)  
+**main HEAD:** `94da576` (`94da5768cb74ef5490ff0a74a874798b9582a5f8`)  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
 **Sprint:** ~04:27–05:37 NZDT Fri 27 Nov 2026  
 **Freeze:** ~05:30 NZDT (hard stop ~05:37 NZDT)
@@ -23,7 +23,7 @@ npx playwright install chromium && npm run build && WOM_DISABLE_SCHEDULER=1 npm 
 docker compose up --build   # unverified on sprint VMs
 ```
 
-## Final evidence (~05:30 NZDT, freeze commit `083f633`)
+## Final evidence (~05:30 NZDT, freeze commit `94da576`)
 | Check | Result |
 | --- | --- |
 | `WOM_DISABLE_SCHEDULER=1 npm test` | **68/68** (20 files) |
