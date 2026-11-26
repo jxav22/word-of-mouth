@@ -2,9 +2,7 @@ import { listFeeds } from '../lib/feeds/service'
 import { refreshFeed } from '../lib/ingest/pipeline'
 
 declare global {
-  // eslint-disable-next-line no-var
   var __womSchedulerStarted: boolean | undefined
-  // eslint-disable-next-line no-var
   var __womRefreshRunning: boolean | undefined
 }
 

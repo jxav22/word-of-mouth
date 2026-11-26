@@ -1,4 +1,4 @@
-import { eq, desc, like, or, and, sql } from 'drizzle-orm'
+import { eq, desc, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { getDb, schema } from '../db'
 import { parseFeedQuery, makeSlug } from './parse'
@@ -7,7 +7,7 @@ import { DEMO_FEEDS } from '../demo/fixtures'
 import { summariseArticle } from '../summarise'
 import { clusterIdFor } from '../cluster/dedupe'
 import { rankArticles } from '../rank'
-import type { Article, Feed, FeedItemView, Source } from '../types'
+import type { Feed, FeedItemView, Source } from '../types'
 
 function mapFeed(row: typeof schema.feeds.$inferSelect): Feed {
   return {
@@ -359,8 +359,3 @@ export function healthPayload() {
     },
   }
 }
-
-// silence unused import warnings for drizzle helpers kept for future filters
-void like
-void or
-void and

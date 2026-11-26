@@ -2,7 +2,6 @@ import { seedDemoFeeds } from './feeds/service'
 import { ensureScheduler } from '../workers/scheduler'
 
 declare global {
-  // eslint-disable-next-line no-var
   var __womBootstrapped: boolean | undefined
 }
 
