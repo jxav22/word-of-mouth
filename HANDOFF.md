@@ -1,10 +1,10 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**main HEAD:** `647baaa`  
+**main HEAD:** `3098bee`  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
 **Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; final verify ~05:07 NZDT  
-**Hard stop:** ~05:37 NZDT · this note ~05:16 NZDT
+**Hard stop:** ~05:37 NZDT · this note ~05:17 NZDT
 
 ## Status
 Product on `main`. PRs **#1–#5** merged; **#6** closed; **#7** docs; **#8** Reddit warning classification.  
