@@ -34,7 +34,14 @@ function ensureSchema(sqlite: Database.Database) {
       title TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'pending',
       last_fetched_at TEXT,
-      last_error TEXT
+      last_error TEXT,
+      last_success_at TEXT,
+      fetch_count INTEGER NOT NULL DEFAULT 0,
+      consecutive_failures INTEGER NOT NULL DEFAULT 0,
+      last_duration_ms INTEGER,
+      last_item_count INTEGER,
+      adapter_id TEXT,
+      enabled INTEGER NOT NULL DEFAULT 1
     );
     CREATE TABLE IF NOT EXISTS articles (
       id TEXT PRIMARY KEY,
@@ -62,6 +69,21 @@ function ensureSchema(sqlite: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_feed_items_feed ON feed_items(feed_id);
     CREATE INDEX IF NOT EXISTS idx_articles_url ON articles(canonical_url);
   `)
+
+  // Additive migrations for existing DBs created before ingestion diagnostics columns.
+  const sourceCols = new Set(
+    sqlite.prepare(`PRAGMA table_info(sources)`).all().map((r) => (r as { name: string }).name),
+  )
+  const alterIfMissing = (name: string, ddl: string) => {
+    if (!sourceCols.has(name)) sqlite.exec(`ALTER TABLE sources ADD COLUMN ${ddl}`)
+  }
+  alterIfMissing('last_success_at', 'last_success_at TEXT')
+  alterIfMissing('fetch_count', 'fetch_count INTEGER NOT NULL DEFAULT 0')
+  alterIfMissing('consecutive_failures', 'consecutive_failures INTEGER NOT NULL DEFAULT 0')
+  alterIfMissing('last_duration_ms', 'last_duration_ms INTEGER')
+  alterIfMissing('last_item_count', 'last_item_count INTEGER')
+  alterIfMissing('adapter_id', 'adapter_id TEXT')
+  alterIfMissing('enabled', 'enabled INTEGER NOT NULL DEFAULT 1')
 }
 
 export function getSqlite() {

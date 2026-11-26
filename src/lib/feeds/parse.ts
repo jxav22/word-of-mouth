@@ -136,6 +136,39 @@ function discoverSources(keywords: string[], topics: string[], query: string): P
     })
   }
 
+  // Reddit public RSS (no auth) — topic-mapped subs; adapter falls back to JSON
+  if (topics.includes('ai') || /ai|llm|ml/.test(q)) {
+    sources.push({
+      kind: 'reddit',
+      url: 'https://www.reddit.com/r/MachineLearning/.rss',
+      title: 'r/MachineLearning',
+    })
+  }
+  if (topics.includes('startups') || /startup|saas|funding/.test(q)) {
+    sources.push({
+      kind: 'reddit',
+      url: 'https://www.reddit.com/r/startups/.rss',
+      title: 'r/startups',
+    })
+  }
+  if (topics.includes('employment') || /job|hiring|career/.test(q)) {
+    sources.push({
+      kind: 'reddit',
+      url: 'https://www.reddit.com/r/cscareerquestions/.rss',
+      title: 'r/cscareerquestions',
+    })
+  }
+
+  // Public JSON APIs (extensible `api` kind)
+  if (topics.includes('ai') || topics.includes('frontend') || topics.includes('backend') || /dev|engineer|programming/.test(q)) {
+    const tag = topics.includes('ai') ? 'ai' : topics.includes('frontend') ? 'javascript' : 'programming'
+    sources.push({
+      kind: 'api',
+      url: `https://dev.to/api/articles?per_page=20&tag=${encodeURIComponent(tag)}`,
+      title: 'DEV Community',
+    })
+  }
+
   // Always include a general tech RSS fallback
   if (sources.length < 3) {
     sources.push({

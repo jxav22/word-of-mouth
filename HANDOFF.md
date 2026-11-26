@@ -1,15 +1,17 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**main (origin):** `748aafb` (awaiting PR #1 merge)  
-**PR #1:** https://github.com/jxav22/word-of-mouth/pull/1 (`feat/qa`)  
-**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:48 NZDT  
+**main:** merging specialist PRs (PR #1 merged; #2 ingestion in progress)  
+**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:50 NZDT  
 **Hard stop:** ~05:37 NZDT
 
 ## Status
-- PR #1 first CI run **failed** at `npm run build`: `next/font/google` loader `Cannot read properties of null` (vitest had passed).
-- Fix on `feat/qa`: bundle Fraunces/Sora via `@fontsource/*` (no Google fetch at compile). Local rebuild **green**; vitest **16/16**; e2e **4/4**.
-- Waiting for Actions re-run green. Core merges — QA does not. Docker compose still **unverified** (no Docker on agent VMs).
+| PR | Branch | State |
+| --- | --- | --- |
+| [#1](https://github.com/jxav22/word-of-mouth/pull/1) | `feat/qa` | **MERGED** (fontsource + tests/e2e/CI) |
+| [#2](https://github.com/jxav22/word-of-mouth/pull/2) | `feat/ingestion` | merging into main (conflicts only in docs) |
+| [#4](https://github.com/jxav22/word-of-mouth/pull/4) | `feat/intelligence` | next |
+| [#3](https://github.com/jxav22/word-of-mouth/pull/3) | `feat/ui` | after #4 |
 
 | Stream | Agent | Branch |
 | --- | --- | --- |
@@ -24,29 +26,37 @@
 git clone https://github.com/jxav22/word-of-mouth.git
 cd word-of-mouth
 npm install
-npm run dev
+npm run dev          # http://localhost:3000 — demo feeds seed on boot
+WOM_DISABLE_SCHEDULER=1 npm test
 npm run build && npm start
 # docker compose up --build   # needs Docker; unverified on sprint VMs
 npx playwright install chromium && npm run test:e2e
 ```
 
+## Env knobs
+- `WOM_DISABLE_SCHEDULER=1` — skip in-process cron
+- `WOM_REFRESH_MINUTES` — cron cadence (default 30, min 5)
+- `WOM_REFRESH_DEMO=1` — include demo feeds in scheduled refresh
+- `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` — optional AI summaries
+
+## Ingestion (from #2)
+- Adapters: `src/lib/sources/{registry,rss,hn,reddit,json-api,demo}.ts`
+- Normalise + pipeline + diagnostics: `src/lib/ingest/`
+- SSRF: `src/lib/security/ssrf.ts`
+- Scheduler: `src/workers/scheduler.ts`
+- APIs: `/api/sources`, `/api/sources/:id`, `/api/sources/:id/refresh`, `/api/ingest/status`
+
 ## Test evidence
 | Source | Check | Result |
 | --- | --- | --- |
-| QA / Core local | `npm test` | **16/16** |
-| Local after font fix | `npm run build` | **green** (`@fontsource` bundled) |
-| Local after font fix | `npm run test:e2e` | **4/4** |
-| QA prior | live ingest | **44 ingested / 0 errors** |
-| Core prior | live ingest | up to **80 / 0 errors** |
-| Actions [45852186443](https://github.com/jxav22/word-of-mouth/actions/runs/45852186443) | build | **failed** (google font loader) |
-| Actions follow-up | after `@fontsource` fix | pending / re-running |
-| Docker compose | | **not verified** |
+| QA / Core | `npm test` | **16/16** |
+| After fontsource | `npm run build` / e2e | **green** / **4/4** |
+| PR #1 Actions | CI | **green** then merged |
+| Live ingest (prior) | POST /api/feeds | up to **80 / 0 errors** |
+| Docker compose | | **not verified** — no Docker on VMs |
 
 ## Gaps
-- Reddit adapter reserved (ingestion)
-- Light feedback refine (intelligence)
+- Intelligence feedback refine / richer NL (PR #4)
+- UI polish (PR #3)
 - Compose smoke needs a Docker host
 - Optional AI keys only
-
-## Snapshot
-`/cursor/stores/bc-5ef5d8bf-cd17-4012-9c97-2592fe303a01/internal/word-of-mouth-snapshot.tgz`
