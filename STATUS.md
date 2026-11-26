@@ -1,6 +1,6 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~04:48 NZDT (QA `feat/qa`)  
+Updated: 2026-11-27 ~04:50 NZDT (QA `feat/qa` merged)  
 Verified against `main` HEAD synced at `748aafb` + font CI fix.
 
 ## Implemented
@@ -48,10 +48,11 @@ Verified against `main` HEAD synced at `748aafb` + font CI fix.
 | Feedback + share APIs | **ok** |
 | `npx playwright install chromium` + `npm run test:e2e` | **4/4 pass** |
 | `docker compose up --build` | **not run** — Docker absent on VM |
+| Actions CI (`feat/qa` `bbe67f2`) | **green** (test + build + e2e); PR #1 merged |
 
 ## Roadmap (prioritised)
 1. Prove Docker Compose on a machine with Docker; fix image issues if any
-2. Confirm CI e2e stays green on GitHub Actions after `feat/qa` merges
+2. ~~Confirm CI e2e green~~ — done on `bbe67f2` / PR #1
 3. Richer feedback refine (re-score items, not only threshold nudge)
 4. Harden flaky RSS hosts; clearer source error UX
 5. Deploy (Vercel or compose) once compose smoke is green
