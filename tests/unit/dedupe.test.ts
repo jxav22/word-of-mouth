@@ -16,11 +16,14 @@ describe('dedupe', () => {
       { canonicalUrl: 'https://example.com/a/', title: 'Something else' },
       {
         canonicalUrl: 'https://example.com/b',
-        title: 'Remote platform engineer roles trending across APAC',
+        title: 'Remote platform engineer roles trending',
       },
       { canonicalUrl: 'https://example.com/c', title: 'Totally different gardening news' },
     ])
-    expect(kept.length).toBe(2)
+    expect(kept.map((k) => k.canonicalUrl)).toEqual([
+      'https://example.com/a',
+      'https://example.com/c',
+    ])
     expect(duplicates.length).toBe(2)
   })
 })
