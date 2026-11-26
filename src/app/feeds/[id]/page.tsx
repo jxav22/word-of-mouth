@@ -27,6 +27,7 @@ export default async function FeedDetailPage({ params, searchParams }: Props) {
   const shareToken = ensureShareToken(feed.id)
   const ok = sources.filter((s) => s.status === 'ok').length
   const errSources = sources.filter((s) => s.status === 'error')
+  const pendingSources = sources.filter((s) => s.status === 'pending')
   const justCreated = sp.created === '1'
   const warnings = mapErrorSourcesToWarnings(errSources)
   const softFloored = items.some((it) => it.reasons?.includes('soft-floor'))
@@ -94,9 +95,17 @@ export default async function FeedDetailPage({ params, searchParams }: Props) {
           <div className="flex items-center justify-between gap-2">
             <h3 className="section-label">Sources</h3>
             <span className="text-[0.68rem] text-[var(--ink-muted)]">
-              {ok} ok{errSources.length > 0 ? ` · ${errSources.length} err` : ''}
+              {ok} ok
+              {pendingSources.length > 0 ? ` · ${pendingSources.length} pending` : ''}
+              {errSources.length > 0 ? ` · ${errSources.length} err` : ''}
             </span>
           </div>
+          {pendingSources.length > 0 ? (
+            <p className="text-xs text-[var(--ink-muted)]">
+              Pending sources have not completed a fetch yet — use Refresh now or wait for the
+              scheduler.
+            </p>
+          ) : null}
           <ul className="space-y-3">
             {sources.map((s) => (
               <li key={s.id} className="text-sm">
