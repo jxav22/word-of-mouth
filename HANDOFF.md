@@ -2,7 +2,7 @@
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
-**main HEAD:** final integration (~04:56 NZDT Fri 27 Nov 2026)  
+****main HEAD:** `9764978` — final integration (~04:57 NZDT Fri 27 Nov 2026)
 **Hard stop:** ~05:37 NZDT
 
 ## Status
