@@ -1,6 +1,9 @@
+import Link from 'next/link'
 import { BrandMark } from '@/components/BrandMark'
 import { CreateFeedForm } from '@/components/CreateFeedForm'
 import { FeedList } from '@/components/FeedList'
+import { SignalField } from '@/components/SignalField'
+import { SiteHeader } from '@/components/SiteHeader'
 import { bootstrap } from '@/lib/bootstrap'
 import { listFeeds } from '@/lib/feeds/service'
 
@@ -13,38 +16,58 @@ export default async function HomePage() {
   const live = feeds.filter((f) => !f.isDemo)
 
   return (
-    <div className="space-y-12">
-      <section className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-        <div className="space-y-5 animate-rise">
-          <BrandMark large />
-          <h1 className="sr-only">Word of Mouth</h1>
-          <p className="max-w-xl text-lg sm:text-xl text-[var(--ink-soft)] leading-relaxed">
-            Say what you care about in plain language. We discover sources, ingest the chatter, rank
-            what matters, and keep a living feed you can share.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <span className="badge badge-demo">Demo feeds seeded</span>
-            <span className="badge badge-live">Live RSS / HN</span>
-            <span className="badge">Extractive summaries without AI keys</span>
-          </div>
+    <>
+      <div className="relative">
+        <div className="absolute inset-x-0 top-0 z-50">
+          <SiteHeader overHero />
         </div>
-        <CreateFeedForm />
-      </section>
 
-      <section className="space-y-4 animate-rise-delay">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-3xl text-[var(--ink)]">Your listening posts</h2>
-            <p className="text-sm text-[var(--ink-soft)] mt-1">
-              Demo feeds are labelled. Live feeds refresh on a schedule and on demand.
+        <section className="hero-bleed">
+          <SignalField />
+          <div className="hero-inner space-y-6">
+            <div className="animate-rise max-w-3xl space-y-5">
+              <BrandMark large inverted />
+              <h1 className="font-display text-[clamp(1.35rem,3.6vw,2.15rem)] leading-snug text-[var(--hero-mist)]">
+                Natural language in. A living feed out.
+              </h1>
+              <p className="max-w-lg text-base leading-relaxed text-[var(--hero-muted)] sm:text-lg">
+                Describe what you care about. We discover sources, rank the signal, and keep a
+                shareable listening post.
+              </p>
+              <div className="flex flex-wrap gap-3 pt-1">
+                <a href="#create" className="btn-primary cta-pulse">
+                  Start listening
+                </a>
+                <Link href="/feeds" className="btn-ghost">
+                  Browse feeds
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div className="mx-auto max-w-6xl space-y-14 px-4 py-10 sm:px-6 sm:py-14">
+        <section className="animate-fade">
+          <CreateFeedForm />
+        </section>
+
+        <section className="animate-rise-delay space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="section-label">Listening posts</p>
+              <h2 className="font-display mt-1 text-3xl text-[var(--ink)] sm:text-4xl">Your feeds</h2>
+              <p className="mt-1 max-w-xl text-sm text-[var(--ink-soft)]">
+                Demo feeds are seeded fixtures. Live feeds pull public RSS and Hacker News.
+              </p>
+            </div>
+            <p className="section-label">
+              {demo.length} demo · {live.length} live
             </p>
           </div>
-          <p className="text-xs uppercase tracking-[0.14em] text-[var(--ink-soft)]">
-            {demo.length} demo · {live.length} live
-          </p>
-        </div>
-        <FeedList feeds={feeds} />
-      </section>
-    </div>
+          <FeedList feeds={feeds} />
+        </section>
+      </div>
+    </>
   )
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Fraunces, Sora } from 'next/font/google'
-import { SiteHeader } from '@/components/SiteHeader'
+import { AppChrome } from '@/components/AppChrome'
 import './globals.css'
 
 const display = Fraunces({
@@ -25,11 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className={`${display.variable} ${body.variable} antialiased atmosphere`}>
-        <SiteHeader />
-        <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10">{children}</main>
-        <footer className="mx-auto max-w-6xl px-4 sm:px-6 pb-10 text-xs text-[var(--ink-soft)]">
-          Word of Mouth · demo mode needs no credentials · optional AI via env keys
-        </footer>
+        <AppChrome>{children}</AppChrome>
       </body>
     </html>
   )

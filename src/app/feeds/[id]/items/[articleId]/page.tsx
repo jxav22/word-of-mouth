@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ItemActions } from '@/components/ItemActions'
+import { ModeBadge } from '@/components/ModeBadge'
 import { bootstrap } from '@/lib/bootstrap'
 import { ensureShareToken, getArticleForFeed, getFeedByIdOrSlug } from '@/lib/feeds/service'
 
@@ -19,46 +20,50 @@ export default async function ItemDetailPage({ params }: Props) {
   const a = item.article
 
   return (
-    <article className="max-w-3xl space-y-6 animate-rise">
-      <Link href={`/feeds/${feed.slug}`} className="text-sm text-[var(--moss)]">
+    <article className="animate-rise mx-auto max-w-3xl space-y-6">
+      <Link href={`/feeds/${feed.slug}`} className="text-sm text-[var(--teal)] hover:underline">
         ← {feed.title}
       </Link>
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <span className={`badge ${a.isDemo ? 'badge-demo' : 'badge-live'}`}>
-            {a.isDemo ? 'Demo item' : 'Live item'}
-          </span>
+          <ModeBadge demo={a.isDemo} size="md" />
           <span className="badge">{a.sourceTitle}</span>
           <span className="badge">score {(item.score * 100).toFixed(0)}</span>
         </div>
-        <h1 className="font-display text-4xl text-[var(--ink)] leading-tight">{a.title}</h1>
-        <p className="text-sm text-[var(--ink-soft)]">
+        <h1 className="font-display text-3xl leading-tight text-[var(--ink)] sm:text-4xl">{a.title}</h1>
+        <p className="text-sm text-[var(--ink-muted)]">
           {a.author ? `${a.author} · ` : ''}
-          {a.publishedAt ? new Date(a.publishedAt).toLocaleString('en-NZ', { timeZone: 'Pacific/Auckland' }) + ' NZDT' : 'undated'}
+          {a.publishedAt
+            ? new Date(a.publishedAt).toLocaleString('en-NZ', { timeZone: 'Pacific/Auckland' }) + ' NZDT'
+            : 'undated'}
         </p>
       </div>
 
-      <div className="panel p-5 space-y-3">
-        <h2 className="text-xs uppercase tracking-[0.14em] text-[var(--ink-soft)]">Summary</h2>
+      <div className="space-y-2 border-l-2 border-[var(--ember)] pl-4">
+        <h2 className="section-label">Summary</h2>
         <p className="text-lg leading-relaxed text-[var(--ink)]">{a.summary}</p>
       </div>
 
-      <div className="space-y-2">
-        <h2 className="text-xs uppercase tracking-[0.14em] text-[var(--ink-soft)]">Why ranked</h2>
-        <p className="text-sm text-[var(--ink-soft)]">{item.reasons.join(' · ')}</p>
-      </div>
+      <details className="group">
+        <summary className="section-label cursor-pointer hover:text-[var(--teal)] [&::-webkit-details-marker]:hidden">
+          Why ranked · {item.reasons.length} signals
+        </summary>
+        <p className="mt-2 text-sm text-[var(--ink-soft)]">{item.reasons.join(' · ')}</p>
+      </details>
 
-      <div className="space-y-2">
-        <h2 className="text-xs uppercase tracking-[0.14em] text-[var(--ink-soft)]">Extract</h2>
-        <p className="text-[var(--ink-soft)] leading-relaxed whitespace-pre-wrap">{a.contentText}</p>
-      </div>
+      <details className="group" open>
+        <summary className="section-label cursor-pointer hover:text-[var(--teal)] [&::-webkit-details-marker]:hidden">
+          Extract
+        </summary>
+        <p className="mt-3 whitespace-pre-wrap leading-relaxed text-[var(--ink-soft)]">{a.contentText}</p>
+      </details>
 
-      <div className="flex flex-wrap items-center gap-4 pt-2">
+      <div className="flex flex-wrap items-start gap-4 border-t border-[var(--line)] pt-4">
         <a
           href={a.canonicalUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3 py-2 bg-[var(--ink)] text-[var(--paper)] text-sm hover:bg-[var(--moss)]"
+          className="btn-ink"
         >
           Open original source
         </a>
