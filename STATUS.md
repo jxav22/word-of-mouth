@@ -1,42 +1,44 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~04:56 NZDT (final integration)
+Updated: 2026-11-27 ~05:00 NZDT (PR #5 landing)
 
 ## Implemented
-- Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle / better-sqlite3)
-- NL parse → keywords / topics / excludeKeywords / source discovery
-- Ingest adapter registry: rss, hn, reddit, json-api, demo + normalise + diagnostics
-- Strengthened SSRF; node-cron due-feed scheduler; source management APIs
+- Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
+- NL parse → keywords/topics/excludes → source discovery
+- Ingest adapters: rss, hn, reddit, json-api, demo + normalise + diagnostics
+- SSRF hardened; node-cron scheduler; source management APIs
 - Rank + feedback refine; hard dedupe + soft clusters; summarise + attribution
-- UI: harbor-signal design, `AppChrome`, create/browse/search/share/sources
-- Demo seed (4 labelled feeds); GitHub Actions CI; `@fontsource` Fraunces/Sora
+- UI: harbor-signal design, AppChrome, create/browse/search/share/sources
+- Demo seed (4 feeds); CI; `@fontsource` Fraunces/Sora
 
 ## Partial
-- Live ingest quality depends on upstreams; Reddit may 403 from some egress IPs
-- Optional AI summarise only with `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`
-- Search result links use feed **id** not slug (works; cosmetic)
-- Docker Compose files present but **not run** on sprint agent VMs (no Docker)
+- Live upstream quality varies; Reddit may 403 from some egress
+- Optional AI summarise needs env keys
+- Docker Compose unverified on sprint VMs
+- Some sources error gracefully during ingest while others succeed
 
 ## Unimplemented / deferred
-- Redis / distributed job queue
+- Redis / distributed scheduler
 - Auth / multi-user accounts
 - Embedding-based ranking
 
 ## Defects
-- None blocking clone → `npm install` → `npm run dev`
-- Do **not** reintroduce `next/font/google` (CI failure); keep `@fontsource` + `AppChrome`
+- Do not reintroduce `next/font/google`
+- Post-merge e2e selector drift after UI polish — **fixed** (PR #5 + main `#query`/`#create` selectors)
+- Unused eslint-disable warnings at build (non-blocking)
 
-## Verification (commands)
-```bash
-WOM_DISABLE_SCHEDULER=1 npm test          # 51/51
-npm run build                             # green
-npm start                                 # then curl /api/health, POST /api/feeds, search, share
-```
-
-Live smoke (NZDT ~04:55–04:57): health ok; pages 200; create feed ranked items; search `auckland` → 15; share 200; feedback refine ok; Playwright **4/4**
+## Verification
+| Check | Result |
+| --- | --- |
+| `npm test` | **51/51** |
+| `npm run build` | **green** |
+| `npm run test:e2e` | **4/4** |
+| Live ingest (QA) | **38/38** ranked |
+| PR #5 CI @ `29e6ace` | **green** |
+| Docker compose | not run |
 
 ## Roadmap
-1. Prove `docker compose up --build` on a Docker host
-2. Harden Reddit/HN failure UX; clearer per-source warnings in create flow
-3. Deploy (Vercel or compose)
-4. Richer embedding rank if time/budget
+1. Docker compose smoke on a Docker host
+2. Clearer per-source warnings on create/refresh (`feat/polish-gaps`)
+3. Harden Reddit/HN adapters against 403/HTML
+4. Optional deploy
