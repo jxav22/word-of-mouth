@@ -2,52 +2,37 @@
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
-****main HEAD:** `9764978` — final integration (~04:57 NZDT Fri 27 Nov 2026)
-**Hard stop:** ~05:37 NZDT
+**main HEAD:** `f8b94c1`  
+**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~05:02 NZDT  
+**Hard stop:** ~05:37 NZDT · final verification ~05:32 NZDT
 
 ## Status
-All specialist PRs integrated on `main` (#1 QA, #2 ingestion, #4 intelligence, #3 UI). App is cloneable and runnable without credentials.
+| PR | State |
+| --- | --- |
+| #1–#5 | **MERGED** |
+| [#6](https://github.com/jxav22/word-of-mouth/pull/6) | **Landed on main** (`a703c2b`) — feedSlug API + tests (**55/55**). PR may still show open until GitHub closes; UI source-warning UX can still push to `feat/polish-gaps`. |
+
+Layout: `@fontsource` + `AppChrome` only — never `next/font/google`.
 
 ## How to run
 ```bash
 git clone https://github.com/jxav22/word-of-mouth.git
 cd word-of-mouth
 npm install
-npm run dev                 # http://localhost:3000 — 4 demo feeds seed on boot
-# production:
+npm run dev
 npm run build && npm start
-# tests:
 WOM_DISABLE_SCHEDULER=1 npm test
 npx playwright install chromium && npm run build && WOM_DISABLE_SCHEDULER=1 npm run test:e2e
-# docker (needs Docker host):
-docker compose up --build
 ```
 
-## Test evidence (final integration VM)
-| Command / check | Result |
+## Test evidence
+| Check | Result |
 | --- | --- |
-| `WOM_DISABLE_SCHEDULER=1 npm test` | **51/51** pass |
-| `npm run build` | **green** (Next 15.5.12 standalone) |
-| `GET /api/health` | ok; adapters demo/hn/reddit/rss/json-api |
-| Pages `/` `/feeds` `/sources` `/search` | **200** |
-| `POST /api/feeds` live | ingested with ranked items; source warnings possible (HN/Reddit) |
-| Browse feed detail | **200**, items returned |
-| `GET /api/search?q=auckland` | **15** hits |
-| Share `/api/feeds/:id/share` + `/s/:token` | **200** |
-| Feedback `POST .../feedback` | ok + refine keywords |
-| Layout guard | `@fontsource` + `AppChrome` (no `next/font/google`) |
-| `docker compose` | **not verified** — no Docker on sprint VMs |
-| Playwright e2e | **4/4** pass (selectors updated for AppChrome hero) |
+| `npm test` | **55/55** (incl. search-slug) |
+| build / e2e (prior) | green / **4/4** |
+| Live ingest | QA 38/38; core up to 80 |
+| Docker | not verified |
 
-## Implemented
-NL create → RSS/HN/Reddit/API discover → ingest/normalise → rank/dedupe/cluster → summarise → demo feeds → share/search/feedback → source diagnostics → SSRF → scheduler → harbor-signal UI → CI
-
-## Partial / gaps
-- Live upstream flaky (Reddit 403, some RSS/HN parse warnings) — recorded per-source
-- Optional AI keys only
-- Search links by feed id (cosmetic)
-- Docker compose unverified on agent images
-- Redis/auth/embeddings deferred
-
-## Owner
-[Word of Mouth core](bc-36b64192-691a-5946-9a6e-059fadb961e2)
+## Remaining before hard stop
+- UI create/refresh per-source warnings (same branch / follow-up)
+- Final verification ~05:32
