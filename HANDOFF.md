@@ -35,6 +35,7 @@ npx playwright install chromium && npm run test:e2e
 | --- | --- | --- |
 | Core / QA local | `npm test` | **16/16** |
 | Core local (font fix) | `npm run build` | **green** (bundled fonts) |
+| Core local (font fix) | `npm run test:e2e` | **4/4** |
 | QA prior | e2e / live ingest | **4/4**, **44 ingested / 0 errors** |
 | Core prior | live ingest | up to **80 / 0 errors** |
 | GitHub Actions PR #1 | build | **failed** (google font loader) → fix pushed |
