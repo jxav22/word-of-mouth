@@ -17,8 +17,8 @@
   --line: rgba(10, 22, 20, 0.12);
   --line-strong: rgba(10, 22, 20, 0.22);
   --hero-ink: #061210;
-  --hero-mist: rgba(238, 243, 240, 0.88);
-  --hero-muted: rgba(238, 243, 240, 0.62);
+  --hero-mist: rgba(245, 249, 247, 0.96);
+  --hero-muted: rgba(238, 243, 240, 0.78);
   --glow-soft: rgba(217, 119, 47, 0.22);
   --background: var(--paper);
   --foreground: var(--ink);
@@ -30,6 +30,7 @@
 html,
 body {
   min-height: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -245,10 +246,8 @@ body {
 /* —— Full-bleed hero —— */
 .hero-bleed {
   position: relative;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  width: 100vw;
-  min-height: min(92vh, 760px);
+  width: 100%;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;

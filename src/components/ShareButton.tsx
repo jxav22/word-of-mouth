@@ -7,14 +7,19 @@ export function ShareButton({ path }: { path: string }) {
   return (
     <button
       type="button"
-      className="btn-outline"
+      className={`btn-outline ${copied ? '!border-[var(--teal)] !text-[var(--teal)]' : ''}`}
+      aria-live="polite"
       onClick={async () => {
-        await navigator.clipboard.writeText(`${window.location.origin}${path}`)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1500)
+        try {
+          await navigator.clipboard.writeText(`${window.location.origin}${path}`)
+          setCopied(true)
+          setTimeout(() => setCopied(false), 2000)
+        } catch {
+          setCopied(false)
+        }
       }}
     >
-      {copied ? 'Link copied' : 'Copy share link'}
+      {copied ? 'Link copied ✓' : 'Copy share link'}
     </button>
   )
 }

@@ -3,7 +3,7 @@ export function SignalField() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <svg
-        className="absolute right-[-8%] top-[8%] h-[78%] w-[72%] opacity-90"
+        className="absolute right-0 top-[8%] h-[78%] w-[68%] max-w-full opacity-90"
         viewBox="0 0 640 520"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

@@ -20,14 +20,24 @@ export default function SearchPage() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get('q')?.trim() || ''
+    if (initial.length >= 2) {
+      setQ(initial)
+      runSearch(initial)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once from URL
+  }, [])
+
   const slugById = useMemo(() => Object.fromEntries(feeds.map((f) => [f.id, f.slug])), [feeds])
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault()
+  function runSearch(query: string) {
     setError(null)
     setSearched(true)
+    const next = `/search?q=${encodeURIComponent(query)}`
+    window.history.replaceState(null, '', next)
     startTransition(async () => {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`)
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Search failed')
@@ -35,6 +45,11 @@ export default function SearchPage() {
       }
       setResults(data.results || [])
     })
+  }
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    runSearch(q.trim())
   }
 
   return (
