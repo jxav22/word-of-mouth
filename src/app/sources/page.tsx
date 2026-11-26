@@ -1,4 +1,5 @@
 import { ModeBadge } from '@/components/ModeBadge'
+import { SourceWarningsBanner } from '@/components/SourceWarningsBanner'
 import { bootstrap } from '@/lib/bootstrap'
 import { listFeeds, listSources } from '@/lib/feeds/service'
 import { listAdapters } from '@/lib/sources/registry'
@@ -43,6 +44,18 @@ export default async function SourcesPage() {
           Adapters: {adapters.map((a) => `${a.id} (${a.kinds.join('/')})`).join(' · ')}
         </p>
       </div>
+
+      {summary.error > 0 ? (
+        <SourceWarningsBanner
+          warnings={sources
+            .filter((s) => s.status === 'error')
+            .map((s) => ({
+              title: s.title,
+              kind: s.kind,
+              message: s.lastError || 'Fetch failed',
+            }))}
+        />
+      ) : null}
 
       <SchedulerControls status={scheduler} />
 
