@@ -9,7 +9,7 @@
 | PR | State |
 | --- | --- |
 | #1–#5 | **MERGED** |
-| [#6](https://github.com/jxav22/word-of-mouth/pull/6) `feat/polish-gaps` | **MERGING** feedSlug API+tests now; UI source-warning UX may follow on same branch |
+| [#6](https://github.com/jxav22/word-of-mouth/pull/6) `feat/polish-gaps` | **MERGED** feedSlug (`a703c2b`); UI warnings may still land |
 
 Layout: keep `@fontsource` + `AppChrome`; never `next/font/google`.
 
