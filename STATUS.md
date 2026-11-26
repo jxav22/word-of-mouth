@@ -1,6 +1,6 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~05:31 NZDT · main `c3fccbf`
+Updated: 2026-11-27 ~05:31 NZDT · main `249a0a5`
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
