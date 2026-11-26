@@ -1,10 +1,7 @@
 import Link from 'next/link'
+import type { SourceWarning } from '@/lib/ingest/source-warnings'
 
-export type SourceWarning = {
-  title: string
-  kind?: string
-  message: string
-}
+export type { SourceWarning }
 
 /** Non-blocking ingest / source failure callout for create handoff and feed browse. */
 export function SourceWarningsBanner({

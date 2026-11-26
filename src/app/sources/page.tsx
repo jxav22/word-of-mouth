@@ -1,6 +1,7 @@
 import { ModeBadge } from '@/components/ModeBadge'
 import { SourceWarningsBanner } from '@/components/SourceWarningsBanner'
 import { bootstrap } from '@/lib/bootstrap'
+import { mapErrorSourcesToWarnings } from '@/lib/ingest/source-warnings'
 import { listFeeds, listSources } from '@/lib/feeds/service'
 import { listAdapters } from '@/lib/sources/registry'
 import { getSchedulerStatus, listIngestRuns } from '@/lib/ingest/diagnostics'
@@ -46,15 +47,7 @@ export default async function SourcesPage() {
       </div>
 
       {summary.error > 0 ? (
-        <SourceWarningsBanner
-          warnings={sources
-            .filter((s) => s.status === 'error')
-            .map((s) => ({
-              title: s.title,
-              kind: s.kind,
-              message: s.lastError || 'Fetch failed',
-            }))}
-        />
+        <SourceWarningsBanner warnings={mapErrorSourcesToWarnings(sources.filter((s) => s.status === 'error'))} />
       ) : null}
 
       <SchedulerControls status={scheduler} />
