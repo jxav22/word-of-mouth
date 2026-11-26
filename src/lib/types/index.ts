@@ -61,6 +61,8 @@ export type FeedItem = {
 
 export type FeedItemView = FeedItem & {
   article: Article
+  /** Present on search results so clients can link by slug without a feeds lookup race. */
+  feedSlug?: string
 }
 
 export type RawArticle = {
