@@ -1,7 +1,8 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**Working tree:** `/workspace` (owns `main`)  
+**Working tree:** `/workspace` (owns `main`)
+**main HEAD:** `6b40bf1` — foundation leftovers cherry-picked  
 **Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:42 NZDT  
 **Hard stop:** ~05:37 NZDT
 
@@ -30,7 +31,7 @@ docker compose up --build
 ## Test evidence
 | Source | Check | Result |
 | --- | --- | --- |
-| Core (`main`) | `npm test` | **8/8** then **10/10** after parse tests land |
+| Core (`main`) | `npm test` | **10/10** |
 | Core (`main`) | `npm run build` | **green** (Next 15.5.12 standalone) |
 | Foundation (their tree) | vitest | **10/10** |
 | Foundation | `next build` | OK |
