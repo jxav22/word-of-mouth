@@ -1,41 +1,35 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~05:02 NZDT (PR #6 feedSlug landing; UI warnings still on feat/polish-gaps)
+Updated: 2026-11-27 ~05:03 NZDT (feedSlug + source-warning UX on main)
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
-- NL parse → keywords/topics/excludes → source discovery
-- Ingest adapters: rss, hn, reddit, json-api, demo + normalise + diagnostics
-- SSRF hardened; node-cron scheduler; source management APIs
-- Rank + feedback refine; hard dedupe + soft clusters; summarise + attribution
-- UI: harbor-signal design, AppChrome, create/browse/search/share/sources
-- Search results stamp `feedSlug` for stable slug links (API + tests)
-- Demo seed (4 feeds); CI; `@fontsource` Fraunces/Sora
+- NL parse → discover → ingest → rank/dedupe/cluster → summarise
+- Adapters: rss, hn, reddit, json-api, demo; SSRF; scheduler; source APIs
+- Search `feedSlug` on API results + stable slug links
+- **SourceWarningsBanner** on create + feed detail + sources (clearer upstream/Reddit failures)
+- Harbor-signal UI / AppChrome / `@fontsource`; demo feeds; CI
 
 ## Partial
-- Live upstream quality varies; Reddit may 403 from some egress
-- Optional AI summarise needs env keys
+- Live upstream flaky (Reddit 403, some RSS/HN warnings)
+- Optional AI keys only
 - Docker Compose unverified on sprint VMs
-- Create/refresh per-source warning UX — UI still landing on `feat/polish-gaps`
 
 ## Unimplemented / deferred
-- Redis / distributed scheduler
-- Auth / multi-user accounts
-- Embedding-based ranking
+- Redis / auth / embeddings / distributed scheduler
 
 ## Defects
-- Do not reintroduce `next/font/google`
-- Unused eslint-disable warnings at build (non-blocking)
+- Never reintroduce `next/font/google`
+- Build may emit unused eslint-disable warnings (non-blocking)
 
 ## Verification
 | Check | Result |
 | --- | --- |
-| Pre-merge main | vitest **51/51**, build green, e2e **4/4** |
-| PR #5 CI | green → merged |
-| Docker compose | not run |
+| `npm test` after feedSlug | **55/55** |
+| e2e / build (prior) | **4/4** / green |
+| Docker | not run |
 
 ## Roadmap
-1. Land remaining UI source-warning UX from `feat/polish-gaps`
-2. Docker compose smoke on a Docker host
-3. Harden Reddit/HN adapters
-4. Optional deploy
+1. Final verification ~05:32 NZDT
+2. Docker compose on a Docker host
+3. Deploy
