@@ -1,15 +1,15 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**main HEAD:** `db651db`  
+**main HEAD:** _(stamp after push)_  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
 **Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; final verify ~05:07 NZDT  
-**Hard stop:** ~05:37 NZDT
+**Hard stop:** ~05:37 NZDT · this note ~05:11 NZDT
 
 ## Status
-Product work from PRs **#1–#6** is on `main` (feedSlug API + SourceWarningsBanner UX).  
-PR **#6** is **closed** (obsolete — halves landed on `main` separately).  
-Layout: `@fontsource` + `AppChrome` only — do not reintroduce `next/font/google`.
+Product on `main`. PRs **#1–#5** merged; **#6** closed (obsolete); **#7** merged (docs).  
+Post-verify polish: compact HN Algolia queries, soft-floor ranking, HN RSS adapter fix, eslint cleanup.  
+Layout: `@fontsource` + `AppChrome` only — never `next/font/google`.
 
 ## How to run
 ```bash
@@ -17,22 +17,25 @@ git clone https://github.com/jxav22/word-of-mouth.git
 cd word-of-mouth
 npm install
 npm run dev
+# production:
 npm run build && npm start
+# tests:
 WOM_DISABLE_SCHEDULER=1 npm test
 npx playwright install chromium && npm run build && WOM_DISABLE_SCHEDULER=1 npm run test:e2e
 ```
 
-## Test evidence (final verify ~05:07 NZDT)
+## Test evidence
 | Check | Result |
 | --- | --- |
-| `npm test` | **55/55** |
-| `npm run build` | green |
+| `npm test` (post-polish) | **58/58** |
+| `npm run build` | green (no eslint warnings) |
 | e2e | **4/4** |
-| Live ingest | create → ranked **38**; Reddit 403 + HN RSS JSON-parse warnings expected |
-| Live search | `feedSlug` present on all `/api/search` hits |
-| Live UX | SourceWarningsBanner after create; `/sources` shows error summary |
+| Live create (Rust feed) | ranked **36**; HN 30 hits; DEV·rust 20; Reddit 403 expected |
+| Live search | `feedSlug` on hits |
+| Live share | `GET /api/feeds/:id/share` + `/s/:token` **200** |
 | Docker | not verified |
 
 ## Gaps
-- Docker compose unverified
-- Optional AI; Reddit egress 403s; occasional HN RSS adapter mismatch
+- Docker compose unverified on sprint VMs
+- Optional AI keys only
+- Reddit often 403 (banner surfaces); demos remain credential-free

@@ -6,7 +6,6 @@ import { getSchedulerStatus } from '../lib/ingest/diagnostics'
 declare global {
   var __womSchedulerStarted: boolean | undefined
   var __womRefreshRunning: boolean | undefined
-  // eslint-disable-next-line no-var
   var __womCronTask: ReturnType<typeof cron.schedule> | undefined
 }
 

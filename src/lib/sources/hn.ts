@@ -59,7 +59,8 @@ export async function fetchHn(apiUrl: string): Promise<{
 export const hnAdapter: SourceAdapter = {
   id: 'hn',
   kinds: ['hn'],
-  match: (url) => url.includes('hn.algolia.com') || url.includes('news.ycombinator.com'),
+  // Algolia JSON only — news.ycombinator.com/rss must stay on the RSS adapter
+  match: (url) => url.includes('hn.algolia.com'),
   async fetch(ctx) {
     return fetchHn(ctx.url)
   },

@@ -25,9 +25,7 @@ export type SchedulerStatus = {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __womIngestRuns: IngestRunRecord[] | undefined
-  // eslint-disable-next-line no-var
   var __womSchedulerStatus: SchedulerStatus | undefined
 }
 

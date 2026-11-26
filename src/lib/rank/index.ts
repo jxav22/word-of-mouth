@@ -163,7 +163,7 @@ export function rankArticles<
   const docs = articles.map((a) => `${a.title}\n${a.contentText}`)
   const sem = queryText.trim() ? semanticScores(queryText, docs) : articles.map(() => 0)
 
-  const ranked = articles
+  const scored = articles
     .map((a, i) => {
       const { score, reasons } = scoreArticle(
         a,
@@ -179,8 +179,18 @@ export function rankArticles<
           : reasons
       return { ...a, score, reasons: [...new Set(tagged)].slice(0, 8) }
     })
-    .filter((a) => a.score >= threshold)
     .sort((a, b) => b.score - a.score)
+
+  let ranked = scored.filter((a) => a.score >= threshold)
+
+  // Soft floor: if nothing clears the threshold but we ingested candidates,
+  // keep a small top slice so new feeds are never empty after a successful fetch.
+  if (ranked.length === 0 && scored.length > 0) {
+    ranked = scored.slice(0, 12).map((a) => ({
+      ...a,
+      reasons: [...new Set([...a.reasons, 'soft-floor'])].slice(0, 8),
+    }))
+  }
 
   return mmrReorder(ranked)
 }

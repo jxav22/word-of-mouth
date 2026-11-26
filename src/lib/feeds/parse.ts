@@ -211,6 +211,22 @@ export function scoreConfigQuality(parsed: {
   return Math.round(Math.min(1, q) * 1000) / 1000
 }
 
+/** Compact Algolia-friendly terms (phrases → unique tokens, max 3). */
+export function hnSearchTerms(keywords: string[], fallback = 'technology'): string {
+  const tokens: string[] = []
+  const seen = new Set<string>()
+  for (const kw of keywords) {
+    for (const part of kw.toLowerCase().split(/[^a-z0-9+#.-]+/).filter(Boolean)) {
+      if (part.length < 2 || seen.has(part)) continue
+      // Prefer distinctive tokens over stop-ish joiners already covered by phrases
+      seen.add(part)
+      tokens.push(part)
+      if (tokens.length >= 3) return tokens.join(' ')
+    }
+  }
+  return tokens.join(' ') || fallback
+}
+
 function discoverSources(
   keywords: string[],
   topics: string[],
@@ -220,7 +236,7 @@ function discoverSources(
   const sources: ParsedFeedQuery['suggestedSources'] = []
   const q = query.toLowerCase()
 
-  const hnQuery = encodeURIComponent(keywords.slice(0, 4).join(' ') || 'technology')
+  const hnQuery = encodeURIComponent(hnSearchTerms(keywords))
   sources.push({
     kind: 'hn',
     url: `https://hn.algolia.com/api/v1/search_by_date?query=${hnQuery}&tags=story&hitsPerPage=30`,
@@ -243,7 +259,7 @@ function discoverSources(
   if (intent === 'employment' || topics.includes('employment') || /job|hiring|career/.test(q)) {
     sources.push({
       kind: 'hn',
-      url: `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent('hiring ' + keywords.slice(0, 3).join(' '))}&tags=story&hitsPerPage=25`,
+      url: `https://hn.algolia.com/api/v1/search_by_date?query=${encodeURIComponent('hiring ' + hnSearchTerms(keywords, 'software'))}&tags=story&hitsPerPage=25`,
       title: 'HN Hiring',
     })
     sources.push({
@@ -309,12 +325,26 @@ function discoverSources(
   }
 
   // Public JSON APIs (extensible `api` kind)
-  if (topics.includes('ai') || topics.includes('frontend') || topics.includes('backend') || /dev|engineer|programming/.test(q)) {
-    const tag = topics.includes('ai') ? 'ai' : topics.includes('frontend') ? 'javascript' : 'programming'
+  if (topics.includes('ai') || topics.includes('frontend') || topics.includes('backend') || /dev|engineer|programming|rust|typescript/.test(q)) {
+    const tag = /rust/.test(q)
+      ? 'rust'
+      : topics.includes('ai')
+        ? 'ai'
+        : topics.includes('frontend') || /typescript|javascript|frontend/.test(q)
+          ? 'javascript'
+          : 'programming'
     sources.push({
       kind: 'api',
       url: `https://dev.to/api/articles?per_page=20&tag=${encodeURIComponent(tag)}`,
-      title: 'DEV Community',
+      title: tag === 'programming' ? 'DEV Community' : `DEV · ${tag}`,
+    })
+  }
+
+  if (/\brust\b/.test(q) || keywords.some((k) => /\brust\b/i.test(k))) {
+    sources.push({
+      kind: 'reddit',
+      url: 'https://www.reddit.com/r/rust/.rss',
+      title: 'r/rust',
     })
   }
 

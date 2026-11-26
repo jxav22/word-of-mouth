@@ -31,7 +31,6 @@ export function resolveAdapter(kind: SourceKind, url: string): SourceAdapter | n
   if (urlHint && (kind === 'api' || kind === urlHint.kinds[0] || urlHint.kinds.includes(kind))) {
     return urlHint
   }
-  if (urlHint && kind === 'rss' && urlHint.id === 'hn') return urlHint
   if (urlHint && kind === 'api') return urlHint
 
   const kindMatches = adapters.filter((a) => a.kinds.includes(kind))

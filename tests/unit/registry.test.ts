@@ -18,6 +18,10 @@ describe('source registry', () => {
     expect(resolveAdapter('demo', 'demo://x')?.id).toBe('demo')
   })
 
+  it('keeps news.ycombinator.com/rss on the RSS adapter (not Algolia JSON)', () => {
+    expect(resolveAdapter('rss', 'https://news.ycombinator.com/rss')?.id).toBe('rss')
+  })
+
   it('normalises reddit listing and RSS URLs', () => {
     expect(redditListingUrl('programming')).toContain('reddit.com/r/programming')
     expect(redditListingUrl('https://www.reddit.com/r/ai/')).toContain('.json')

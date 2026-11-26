@@ -1,7 +1,7 @@
 import { eq, desc, like, or, and, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { getDb, schema } from '../db'
-import { parseFeedQuery, makeSlug } from './parse'
+import { parseFeedQuery, makeSlug, hnSearchTerms } from './parse'
 import { refineFromFeedback, prefsFromFeedbackHistory } from './refine'
 import { refreshFeed } from '../ingest/pipeline'
 import { DEMO_FEEDS } from '../demo/fixtures'
@@ -495,7 +495,7 @@ export async function seedDemoFeeds(force = false): Promise<Feed[]> {
       })
       .run()
 
-    const hnQuery = encodeURIComponent(demo.keywords.slice(0, 3).join(' '))
+    const hnQuery = encodeURIComponent(hnSearchTerms(demo.keywords, demo.keywords[0] || 'technology'))
     db.insert(schema.sources)
       .values({
         id: nanoid(),

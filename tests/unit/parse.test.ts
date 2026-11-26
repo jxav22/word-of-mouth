@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { parseFeedQuery, computeRelevanceThreshold, scoreConfigQuality } from '../../src/lib/feeds/parse'
+import {
+  parseFeedQuery,
+  computeRelevanceThreshold,
+  scoreConfigQuality,
+  hnSearchTerms,
+} from '../../src/lib/feeds/parse'
 
 describe('parseFeedQuery', () => {
   it('keeps short AI keyword and infers topics', () => {
@@ -62,5 +67,15 @@ describe('parseFeedQuery', () => {
       suggestedSources: [{}, {}, {}],
     })
     expect(q).toBeGreaterThan(0.5)
+  })
+
+  it('compacts HN Algolia query terms from phrases', () => {
+    expect(hnSearchTerms(['rust systems', 'systems programming', 'cargo workspace'])).toBe(
+      'rust systems programming',
+    )
+    const parsed = parseFeedQuery('Rust systems programming and cargo workspace tooling')
+    const hn = parsed.suggestedSources.find((s) => s.kind === 'hn')
+    expect(hn?.url).toContain(encodeURIComponent('rust systems programming'))
+    expect(hn?.url).not.toContain(encodeURIComponent('cargo workspace'))
   })
 })

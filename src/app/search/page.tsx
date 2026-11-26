@@ -26,7 +26,6 @@ export default function SearchPage() {
       setQ(initial)
       runSearch(initial)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate once from URL
   }, [])
 
   const slugById = useMemo(() => Object.fromEntries(feeds.map((f) => [f.id, f.slug])), [feeds])

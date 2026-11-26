@@ -98,4 +98,19 @@ describe('rank', () => {
     expect(ranked[0].title.toLowerCase()).toContain('tracing')
     expect(ranked[0].reasons.some((r) => r.startsWith('semantic:') || r.startsWith('title:') || r.startsWith('body:'))).toBe(true)
   })
+
+  it('soft-floors a top slice when nothing clears a high threshold', () => {
+    const ranked = rankArticles(
+      [
+        { title: 'Weekly platform notes', contentText: 'shipping infra updates' },
+        { title: 'Cooking tips for summer', contentText: 'salad recipes' },
+      ],
+      ['quantum', 'photonics'],
+      ['general'],
+      0.9,
+    )
+    expect(ranked.length).toBeGreaterThan(0)
+    expect(ranked.length).toBeLessThanOrEqual(12)
+    expect(ranked.every((r) => r.reasons.includes('soft-floor'))).toBe(true)
+  })
 })
