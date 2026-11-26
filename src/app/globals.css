@@ -22,6 +22,9 @@
   --glow-soft: rgba(217, 119, 47, 0.22);
   --background: var(--paper);
   --foreground: var(--ink);
+  /* Bundled via @fontsource — avoids next/font Google fetch failures in CI */
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-body: 'Sora', ui-sans-serif, system-ui, sans-serif;
 }
 
 html,
@@ -35,7 +38,11 @@ body {
     radial-gradient(900px 520px at 8% -8%, rgba(31, 122, 108, 0.14), transparent 55%),
     radial-gradient(700px 480px at 96% 4%, rgba(217, 119, 47, 0.1), transparent 48%),
     linear-gradient(180deg, #e4ede8 0%, var(--paper) 38%, #e9f0ec 100%);
-  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body);
+}
+
+.font-body {
+  font-family: var(--font-body);
 }
 
 ::selection {
@@ -43,7 +50,7 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-display), ui-serif, Georgia, serif;
+  font-family: var(--font-display);
 }
 
 /* —— Atmosphere —— */
