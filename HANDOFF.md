@@ -1,7 +1,7 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**main HEAD:** `d91ce5c` (`d91ce5c6230f5badd3a811a33dddf89cc048c53f`)  
+**main HEAD:** `c744b6e` (`c744b6eb52d6cac75990e7ee3fd1911b57567db1`)  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
 **Sprint:** ~04:27–05:37 NZDT Fri 27 Nov 2026  
 **Freeze:** ~05:30 NZDT (hard stop ~05:37 NZDT)
