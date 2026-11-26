@@ -1,6 +1,6 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~04:41 NZDT
+Updated: 2026-11-27 ~04:48 NZDT · UI branch `feat/ui`
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
@@ -10,16 +10,22 @@ Updated: 2026-11-27 ~04:41 NZDT
 - Rank, dedupe/cluster, extractive + optional AI summarise
 - SSRF protection, HTML sanitise, prompt fencing
 - API: health, feeds CRUD-ish, refresh, feedback, share, search, sources, public `/api/s/:token`
-- UI: home create+browse, feed detail, item detail, search, sources diagnostics, share page
+- **UI (feat/ui polish):**
+  - Full-bleed dark hero with Word of Mouth brand-level mark + signal-field visual
+  - Progressive disclosure create flow (examples, optional title)
+  - Dense browse lists; Demo/Live `ModeBadge` on feeds, items, sources, share
+  - Search with slug-resolved item links; mobile sources stack + desktop table
+  - Feedback actions with threshold nudge copy; share + refresh controls
+  - Self-hosted Fraunces/Sora via `@fontsource` (no Google font fetch at build)
 - Demo seed: 4 labelled feeds
 - In-process scheduler
-- Dockerfile + docker-compose
-- Vitest unit (rank/dedupe/ssrf) + integration (create feed) + Playwright smoke scaffold
+- Dockerfile + docker-compose + CI workflow
+- Vitest + Playwright scaffold
 
 ## Partial
 - Live ingest quality depends on upstream RSS availability; some sources may error gracefully
 - Feedback only lightly adjusts relevance threshold (not full re-rank model)
-- E2E not yet proven green (Playwright browsers may need install)
+- E2E proven on `feat/qa`; compose still needs a Docker host
 - Optional AI summarise only when env keys present
 
 ## Unimplemented / deferred
@@ -29,14 +35,10 @@ Updated: 2026-11-27 ~04:41 NZDT
 - Embedding-based ranking
 
 ## Defects
-- Search result links use feed id (works) not slug (cosmetic)
-
-## Verification
-- Core `main`: `npm test` → **10/10**; `npm run build` → success
-- Foundation tree: vitest **10/10**, build OK, seed 4 demos, live POST ingested 46 / 0 errors
-- Foundation leftovers (`ef047ac`) cherry-picked onto `main` (short keywords, parse tests, `.dockerignore`)
+- CI historically failed on `next/font/google` null loader — fixed via `@fontsource` (QA + UI)
 
 ## Roadmap
-1. Prove Playwright e2e smoke + Docker compose up
-2. Harden source adapters + richer feedback refine
-3. Deploy (Vercel or compose)
+1. Merge `feat/qa` then `feat/ui` into main
+2. Prove e2e smoke + Docker compose where Docker exists
+3. Harden source adapters + richer feedback refine
+4. Deploy (Vercel or compose)

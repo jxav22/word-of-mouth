@@ -1,51 +1,48 @@
-# HANDOFF — Word of Mouth
+# HANDOFF — Word of Mouth (UI)
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**Working tree:** `/workspace` (owns `main`)  
-**main HEAD:** `052d356` — CI + standalone start + foundation leftovers  
-**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:44 NZDT  
+**Branch:** `feat/ui` → PR into `main`  
+**Working tree:** `/agent/repos/word-of-mouth`  
+**Updated:** Fri 27 Nov 2026 ~04:48 NZDT  
 **Hard stop:** ~05:37 NZDT
 
-## Status
-`main` green. Foundation leftovers cherry-picked (`ef047ac` → short NL keywords, parse tests, `.dockerignore`). Specialists on feature branches — **no open PRs / remote feat/* branches yet**; will merge when opened if CI/tests pass. Core stays on highest-impact main-only fixes (no feat/* collision).
-
-| Branch / agent | Role |
-| --- | --- |
-| `main` / [core](bc-36b64192-691a-5946-9a6e-059fadb961e2) | Integration owner |
-| `feat/ingestion` / [bc-c331753b…](bc-c331753b-744c-5f9d-b860-7e6d38cf516e) | Ingest / SSRF / adapters |
-| `feat/intelligence` / [bc-499283ce…](bc-499283ce-d144-51c7-87d7-a1acd1e2f4ef) | Rank / cluster / summarise / NL |
-| `feat/ui` / [bc-bed2b221…](bc-bed2b221-68b3-52cd-ab30-633f105cb012) | UI polish |
-| `feat/qa` / [bc-a5f5c6ca…](bc-a5f5c6ca-3571-53ee-8b1f-51794227a980) | Tests / STATUS honesty |
-| `foundation/improvements` @ `ef047ac` | Stopped — leftovers on main |
+## Ownership
+- UI polish owned by frontend worker on `feat/ui`
+- Do **not** force-push `main`
+- Core ingest/rank libraries left intact except presentation wiring
+- Fonts: align with QA (`@fontsource/fraunces` + `@fontsource/sora`) — **no `next/font/google`** (CI fails offline)
 
 ## How to run
 ```bash
-git clone https://github.com/jxav22/word-of-mouth.git
-cd word-of-mouth
+cd /agent/repos/word-of-mouth
+git checkout feat/ui
 npm install
-npm run dev          # http://localhost:3000 — demo feeds seed on boot
-npm run build && npm start
-docker compose up --build
+npm run build && npm start   # http://localhost:3000
+npm run seed                 # optional explicit demo seed
 ```
 
-## Test evidence
-| Source | Check | Result |
-| --- | --- | --- |
-| Core `main` | `npm test` | **10/10** |
-| Core `main` | `npm run build` | **green** |
-| Core smoke | `GET /api/health` | ok; 4 demo feeds seeded |
-| Core smoke | `POST /api/feeds` “Latest AI systems and NZ developer tooling” | **ingested 80, ranked 83, errors []**; keywords `ai`,`nz` |
-| Foundation tree | vitest / build / seed | **10/10**, OK, **4 demos** |
-| Foundation | live `POST /api/feeds` | **46 ingested, 0 errors** |
-| CI | `.github/workflows/ci.yml` | added (test + build on push/PR) |
-| Playwright e2e | | config present; browsers may need install |
-| Docker compose | | Dockerfile + `.dockerignore` present |
+## UI shipped on this branch
+| Surface | Notes |
+| --- | --- |
+| Home hero | Full-bleed dark harbor-signal; brand hero-level; CTA → `#create` |
+| Create feed | Below fold; examples; optional title disclosure; live-ingest badge |
+| Feeds browse | Dense list + Demo/Live badges |
+| Feed detail | Mode badge, progressive keywords, sources aside, filter + score bars |
+| Item detail | Summary rail, why-ranked disclosure, feedback + share |
+| Search | Cross-feed; Demo/Live; links via feed slug |
+| Sources | Mobile cards + desktop table; feed mode badges |
+| Share `/s/:token` | Read-only shared feed with mode label |
 
-## Gaps
-- Reddit adapter reserved (ingestion)
-- Feedback lightly adjusts threshold (intelligence)
-- E2E / Docker compose not fully proven here (QA)
-- Optional AI only with env keys
+## Coordination
+| Stream | Branch |
+| --- | --- |
+| QA font fix + tests | `feat/qa` (PR #1) — same `@fontsource` approach |
+| Frontend polish | `feat/ui` (this branch) — AppChrome + harbor hero; adopts QA fonts |
 
-## Snapshot
-`/cursor/stores/bc-5ef5d8bf-cd17-4012-9c97-2592fe303a01/internal/word-of-mouth-snapshot.tgz`
+## Gaps / handoff
+- Visual browser walkthrough in progress
+- QA owns Playwright e2e green
+- Intelligence owns feedback refine depth
+
+## Key paths
+`src/app/`, `src/components/`, `src/app/globals.css`, `STATUS.md`
