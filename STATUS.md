@@ -1,6 +1,6 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~05:30 NZDT · freeze tip `c744b6e`
+Updated: 2026-11-27 ~05:31 NZDT · main `c3fccbf`
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
@@ -30,8 +30,8 @@ Updated: 2026-11-27 ~05:30 NZDT · freeze tip `c744b6e`
 | `npm test` | **68/68** |
 | e2e | **4/4** |
 | build | green |
-| PR #6 | closed |
-| PR #7 / #8 | merged |
+| Last feature SHA | `66407a7` |
+| PR #6 / #7 / #8 | closed / merged / merged |
 | Docker | not run |
 
 ## Roadmap

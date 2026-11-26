@@ -1,14 +1,15 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**main HEAD:** `c744b6e` (`c744b6eb52d6cac75990e7ee3fd1911b57567db1`)  
+**main HEAD:** `c3fccbf` (`c3fccbfd260f231ba6a232b0a1f3f1516bf92ae5`) — after pull, confirm with `git rev-parse --short HEAD`  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
 **Sprint:** ~04:27–05:37 NZDT Fri 27 Nov 2026  
-**Freeze:** ~05:30 NZDT (hard stop ~05:37 NZDT)
+**Freeze:** ~05:31 NZDT (hard stop ~05:37 NZDT)
 
 ## Status
 Runnable product on `main`. PRs **#1–#5** merged; **#6** closed (obsolete); **#7** docs; **#8** Reddit warning classification.  
-Post-verify polish: compact HN queries, soft-floor ranking + UX, HN RSS/Algolia split, Reddit 404-with-Atom, Docker HEALTHCHECK, SourceWarningsBanner.  
+Last feature commit before docs freeze train: `66407a7` (Docker HEALTHCHECK).  
+Also on main: compact HN queries, soft-floor ranking + UX, HN RSS/Algolia split, Reddit 404-with-Atom, SourceWarningsBanner.  
 Layout: `@fontsource` + `AppChrome` only — **never** `next/font/google`.
 
 ## How to run
@@ -23,7 +24,7 @@ npx playwright install chromium && npm run build && WOM_DISABLE_SCHEDULER=1 npm 
 docker compose up --build   # unverified on sprint VMs
 ```
 
-## Final evidence (~05:30 NZDT, freeze commit `94da576`)
+## Final evidence (~05:31 NZDT)
 | Check | Result |
 | --- | --- |
 | `WOM_DISABLE_SCHEDULER=1 npm test` | **68/68** (20 files) |
