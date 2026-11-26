@@ -17,16 +17,17 @@ test('health endpoint ok', async ({ request }) => {
 
 test('sources and search pages load', async ({ page }) => {
   await page.goto('/sources')
-  await expect(page.getByRole('heading', { name: 'Source diagnostics' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Sources' })).toBeVisible()
   await page.goto('/search')
   await expect(page.getByRole('heading', { name: 'Search' })).toBeVisible()
 })
 
 test('create feed from home and open detail', async ({ page }) => {
   await page.goto('/')
-  await page.getByLabel('What should we listen for?').fill(
+  await page.getByLabel('Natural language query').fill(
     'Open source developer tooling and typescript platform news',
   )
+  await page.getByRole('button', { name: '+ Add a custom title' }).click()
   await page.getByLabel('Optional title').fill('QA tooling feed')
   await page.getByRole('button', { name: 'Create feed' }).click()
   await expect(page).toHaveURL(/\/feeds\//, { timeout: 60_000 })
