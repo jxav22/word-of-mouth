@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { SiteHeader } from '@/components/SiteHeader'
+import { AppChrome } from '@/components/AppChrome'
 import '@fontsource/fraunces/500.css'
 import '@fontsource/fraunces/600.css'
 import '@fontsource/fraunces/700.css'
@@ -18,11 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className="antialiased atmosphere font-body">
-        <SiteHeader />
-        <main className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-10">{children}</main>
-        <footer className="mx-auto max-w-6xl px-4 sm:px-6 pb-10 text-xs text-[var(--ink-soft)]">
-          Word of Mouth · demo mode needs no credentials · optional AI via env keys
-        </footer>
+        <AppChrome>{children}</AppChrome>
       </body>
     </html>
   )

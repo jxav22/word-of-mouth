@@ -15,11 +15,13 @@ export function ItemActions({
 }) {
   const [vote, setVote] = useState<'up' | 'down' | null>(initial ?? null)
   const [copied, setCopied] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
   function send(next: 'up' | 'down') {
     const value = vote === next ? null : next
     setVote(value)
+    setNote(value === 'up' ? 'Marked useful — threshold nudged up' : value === 'down' ? 'Marked noisy — threshold nudged down' : 'Feedback cleared')
     startTransition(async () => {
       await fetch(`/api/feeds/${feedId}/feedback`, {
         method: 'POST',
@@ -38,38 +40,39 @@ export function ItemActions({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => send('up')}
-        className={`px-2.5 py-1 text-xs border border-[var(--line)] ${
-          vote === 'up' ? 'bg-[var(--moss)] text-white' : 'bg-white/60'
-        }`}
-        aria-label="Thumbs up"
-      >
-        ▲ Useful
-      </button>
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => send('down')}
-        className={`px-2.5 py-1 text-xs border border-[var(--line)] ${
-          vote === 'down' ? 'bg-[var(--amber-deep)] text-white' : 'bg-white/60'
-        }`}
-        aria-label="Thumbs down"
-      >
-        ▼ Noisy
-      </button>
-      {sharePath && (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={copyShare}
-          className="px-2.5 py-1 text-xs border border-[var(--line)] bg-white/60"
+          disabled={pending}
+          onClick={() => send('up')}
+          className={`px-3 py-1.5 text-xs border border-[var(--line)] transition-colors ${
+            vote === 'up' ? 'bg-[var(--teal)] text-white border-transparent' : 'bg-white/60 hover:bg-white'
+          }`}
+          aria-pressed={vote === 'up'}
+          aria-label="Mark useful"
         >
-          {copied ? 'Copied' : 'Copy share link'}
+          ▲ Useful
         </button>
-      )}
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => send('down')}
+          className={`px-3 py-1.5 text-xs border border-[var(--line)] transition-colors ${
+            vote === 'down' ? 'bg-[var(--ember-deep)] text-white border-transparent' : 'bg-white/60 hover:bg-white'
+          }`}
+          aria-pressed={vote === 'down'}
+          aria-label="Mark noisy"
+        >
+          ▼ Noisy
+        </button>
+        {sharePath && (
+          <button type="button" onClick={copyShare} className="btn-outline !py-1.5 !text-xs">
+            {copied ? 'Copied' : 'Copy share link'}
+          </button>
+        )}
+      </div>
+      {note && <p className="text-xs text-[var(--ink-muted)]">{note}</p>}
     </div>
   )
 }

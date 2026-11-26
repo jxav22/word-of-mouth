@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { FeedItemView } from '@/lib/types'
+import { ModeBadge } from './ModeBadge'
 
 export function FeedSearch({
   feedSlug,
@@ -25,33 +26,43 @@ export function FeedSearch({
 
   return (
     <div className="space-y-3">
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Filter this feed…"
-        className="w-full sm:max-w-md bg-white/70 border border-[var(--line)] px-3 py-2 outline-none focus:border-[var(--moss)]"
-      />
-      <ul className="divide-y divide-[var(--line)] border border-[var(--line)] bg-white/35">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Filter this feed…"
+          className="input-field sm:max-w-md"
+          aria-label="Filter feed items"
+        />
+        <p className="section-label">
+          {filtered.length} of {items.length}
+        </p>
+      </div>
+      <ul className="dense-list divide-y divide-[var(--line)]">
         {filtered.map((item) => (
-          <li key={item.id} className="feed-row px-4 py-3.5">
+          <li key={item.id} className="feed-row px-3 py-3.5 sm:px-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/feeds/${feedSlug}/items/${item.articleId}`}
-                    className="font-display text-lg text-[var(--ink)] hover:text-[var(--moss)]"
+                    className="font-display text-base text-[var(--ink)] hover:text-[var(--teal)] sm:text-lg"
                   >
                     {item.article.title}
                   </Link>
-                  {item.article.isDemo && <span className="badge badge-demo">Demo item</span>}
+                  {item.article.isDemo && <ModeBadge demo />}
                 </div>
-                <p className="text-sm text-[var(--ink-soft)] line-clamp-2">{item.article.summary}</p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] uppercase tracking-[0.1em] text-[var(--ink-soft)]/80">
+                <p className="text-sm leading-snug text-[var(--ink-soft)] line-clamp-2">
+                  {item.article.summary}
+                </p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[0.68rem] uppercase tracking-[0.1em] text-[var(--ink-muted)]">
                   <span>{item.article.sourceTitle}</span>
                   <span>score {(item.score * 100).toFixed(0)}</span>
-                  <span>{item.reasons.slice(0, 3).join(' · ')}</span>
+                  {item.reasons.slice(0, 2).map((r) => (
+                    <span key={r}>{r}</span>
+                  ))}
                 </div>
-                <div className="score-bar mt-2 max-w-xs">
+                <div className="score-bar mt-1.5 max-w-xs">
                   <span style={{ width: `${Math.round(item.score * 100)}%` }} />
                 </div>
               </div>
@@ -59,7 +70,7 @@ export function FeedSearch({
                 href={item.article.canonicalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-[var(--moss)] whitespace-nowrap"
+                className="shrink-0 text-xs text-[var(--teal)] whitespace-nowrap"
               >
                 Source ↗
               </a>
@@ -67,7 +78,7 @@ export function FeedSearch({
           </li>
         ))}
         {filtered.length === 0 && (
-          <li className="px-4 py-8 text-sm text-[var(--ink-soft)]">No items match.</li>
+          <li className="px-4 py-10 text-center text-sm text-[var(--ink-muted)]">No items match.</li>
         )}
       </ul>
     </div>

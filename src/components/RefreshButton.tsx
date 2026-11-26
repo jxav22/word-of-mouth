@@ -9,11 +9,11 @@ export function RefreshButton({ feedId }: { feedId: string }) {
   const [pending, startTransition] = useTransition()
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         disabled={pending}
-        className="px-3 py-1.5 text-sm border border-[var(--line)] bg-white/70 hover:bg-white disabled:opacity-60"
+        className="btn-outline"
         onClick={() => {
           setMsg(null)
           startTransition(async () => {
@@ -30,7 +30,7 @@ export function RefreshButton({ feedId }: { feedId: string }) {
       >
         {pending ? 'Refreshing…' : 'Refresh now'}
       </button>
-      {msg && <span className="text-xs text-[var(--ink-soft)]">{msg}</span>}
+      {msg && <span className="text-xs text-[var(--ink-muted)]">{msg}</span>}
     </div>
   )
 }
