@@ -1,7 +1,7 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~04:45 NZDT (QA `feat/qa`)  
-Verified against `main` HEAD synced at `748aafb` + this PR’s test / CI additions.
+Updated: 2026-11-27 ~04:48 NZDT (QA `feat/qa`)  
+Verified against `main` HEAD synced at `748aafb` + font CI fix.
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle / better-sqlite3)
@@ -32,7 +32,7 @@ Verified against `main` HEAD synced at `748aafb` + this PR’s test / CI additio
 - Embedding-based ranking
 
 ## Defects
-- None blocking clone → install → run in this QA VM
+- CI build (Actions run 45852186443): `next/font/google` threw in `layout.tsx` — **fixed** by bundling `@fontsource/fraunces` + `@fontsource/sora`
 - Docker Compose **not runnable here** — no `docker` / socket on the QA agent image (files present; unverified)
 - Cosmetic: search links prefer id over slug
 
@@ -41,7 +41,7 @@ Verified against `main` HEAD synced at `748aafb` + this PR’s test / CI additio
 | --- | --- |
 | `npm install` | OK |
 | `npm test` (vitest) | **16/16 pass** |
-| `npm run build` | **green** (Next 15.5.12 standalone) |
+| `npm run build` | **green** locally after `@fontsource` fix; CI first run failed on Google fonts |
 | `npm run seed` | **4 demo feeds** |
 | `scripts/start.sh` / `npm start` | **Ready**; `/` 200; `/api/health` ok |
 | Live `POST /api/feeds` (`ingest:true`) | **ingested 44 / ranked 44 / errors []** |

@@ -3,13 +3,13 @@
 **Repo:** https://github.com/jxav22/word-of-mouth  
 **main (origin):** `748aafb` (awaiting PR #1 merge)  
 **PR #1:** https://github.com/jxav22/word-of-mouth/pull/1 (`feat/qa`)  
-**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:47 NZDT  
+**Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:48 NZDT  
 **Hard stop:** ~05:37 NZDT
 
 ## Status
-- PR #1 CI **failed** on `next/font` Google loader (`Cannot read properties of null`) during `npm run build` (tests had passed).
-- Core fix in flight on `feat/qa`: switch to bundled `@fontsource/fraunces` + `@fontsource/sora` (no Google fetch at build). Local: **build green**, vitest **16/16**.
-- Will merge PR #1 into `main` when CI is green. Docker compose still **unverified** (no Docker on agent VMs).
+- PR #1 first CI run **failed** at `npm run build`: `next/font/google` loader `Cannot read properties of null` (vitest had passed).
+- Fix on `feat/qa`: bundle Fraunces/Sora via `@fontsource/*` (no Google fetch at compile). Local rebuild **green**; vitest **16/16**; e2e **4/4**.
+- Waiting for Actions re-run green. Core merges — QA does not. Docker compose still **unverified** (no Docker on agent VMs).
 
 | Stream | Agent | Branch |
 | --- | --- | --- |
@@ -33,16 +33,20 @@ npx playwright install chromium && npm run test:e2e
 ## Test evidence
 | Source | Check | Result |
 | --- | --- | --- |
-| Core / QA local | `npm test` | **16/16** |
-| Core local (font fix) | `npm run build` | **green** (bundled fonts) |
-| Core local (font fix) | `npm run test:e2e` | **4/4** |
-| QA prior | e2e / live ingest | **4/4**, **44 ingested / 0 errors** |
+| QA / Core local | `npm test` | **16/16** |
+| Local after font fix | `npm run build` | **green** (`@fontsource` bundled) |
+| Local after font fix | `npm run test:e2e` | **4/4** |
+| QA prior | live ingest | **44 ingested / 0 errors** |
 | Core prior | live ingest | up to **80 / 0 errors** |
-| GitHub Actions PR #1 | build | **failed** (google font loader) → fix pushed |
-| Docker compose | | **not verified** — no `docker` on VMs |
+| Actions [45852186443](https://github.com/jxav22/word-of-mouth/actions/runs/45852186443) | build | **failed** (google font loader) |
+| Actions follow-up | after `@fontsource` fix | pending / re-running |
+| Docker compose | | **not verified** |
 
 ## Gaps
 - Reddit adapter reserved (ingestion)
 - Light feedback refine (intelligence)
 - Compose smoke needs a Docker host
 - Optional AI keys only
+
+## Snapshot
+`/cursor/stores/bc-5ef5d8bf-cd17-4012-9c97-2592fe303a01/internal/word-of-mouth-snapshot.tgz`
