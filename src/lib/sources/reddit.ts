@@ -59,7 +59,7 @@ export async function fetchReddit(url: string, sourceTitle: string): Promise<{
     const children = data.data?.children || []
     const articles: RawArticle[] = children
       .map((child) => child.data)
-      .filter((d): d is NonNullable<typeof d> => Boolean(d) && !d.stickied)
+      .filter((d): d is NonNullable<RedditChild['data']> => Boolean(d) && !d!.stickied)
       .map((post) => {
         const permalink = post.permalink
           ? `https://www.reddit.com${post.permalink}`

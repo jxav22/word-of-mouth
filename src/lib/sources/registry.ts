@@ -26,16 +26,23 @@ export function listAdapters(): Array<{ id: string; kinds: SourceKind[] }> {
 }
 
 export function resolveAdapter(kind: SourceKind, url: string): SourceAdapter | null {
-  const kindMatches = adapters.filter((a) => a.kinds.includes(kind))
-  if (kindMatches.length === 0) return null
+  // Strong URL hints win regardless of declared kind (mis-tagged sources).
+  const urlHint = adapters.find((a) => a.id !== 'demo' && a.match?.(url))
+  if (urlHint && (kind === 'api' || kind === urlHint.kinds[0] || urlHint.kinds.includes(kind))) {
+    return urlHint
+  }
+  if (urlHint && kind === 'rss' && urlHint.id === 'hn') return urlHint
+  if (urlHint && kind === 'api') return urlHint
 
-  // Prefer URL matchers among kind-compatible adapters
+  const kindMatches = adapters.filter((a) => a.kinds.includes(kind))
+  if (kindMatches.length === 0) {
+    // Fallback: treat unknown/api-ish as JSON if no kind match
+    if (kind === 'api') return adapters.find((a) => a.id === 'json-api') || null
+    return null
+  }
+
   const byUrl = kindMatches.find((a) => a.match?.(url))
   if (byUrl) return byUrl
-
-  // Cross-kind URL hints: HN URL stored as rss/api, reddit URL as api, etc.
-  const anyUrlMatch = adapters.find((a) => a.match?.(url) && a.id !== 'demo')
-  if (anyUrlMatch && (kind === 'api' || kind === 'rss')) return anyUrlMatch
 
   return kindMatches[0] || null
 }

@@ -16,7 +16,8 @@ describe('dedupe', () => {
       { canonicalUrl: 'https://example.com/a/', title: 'Something else' },
       {
         canonicalUrl: 'https://example.com/b',
-        title: 'Remote platform engineer roles trending across APAC',
+        // High overlap with first title (above default 0.72 jaccard threshold)
+        title: 'Remote platform engineer roles trending hard',
       },
       { canonicalUrl: 'https://example.com/c', title: 'Totally different gardening news' },
     ])

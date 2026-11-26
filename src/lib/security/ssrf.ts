@@ -81,19 +81,18 @@ function isBlockedHostname(hostname: string): boolean {
   const host = hostname.replace(/^\[|\]$/g, '').toLowerCase()
   if (BLOCKED_HOSTNAMES.has(host)) return true
   if (BLOCKED_SUFFIXES.some((s) => host.endsWith(s))) return true
-  // Decimal / hex / octal IP tricks often appear as hostnames — reject non-plain IPs that look numeric
-  if (/^\d+$/.test(host)) {
-    // e.g. http://2130706433/ (127.0.0.1)
-    const n = Number(host)
-    if (Number.isFinite(n) && n >= 0 && n <= 0xffffffff) {
-      const a = (n >>> 24) & 255
-      const b = (n >>> 16) & 255
-      const c = (n >>> 8) & 255
-      const d = n & 255
-      return isBlockedIp(`${a}.${b}.${c}.${d}`)
-    }
-  }
   return false
+}
+
+function decodeDecimalIpv4(host: string): string | null {
+  if (!/^\d+$/.test(host)) return null
+  const n = Number(host)
+  if (!Number.isFinite(n) || n < 0 || n > 0xffffffff) return null
+  const a = (n >>> 24) & 255
+  const b = (n >>> 16) & 255
+  const c = (n >>> 8) & 255
+  const d = n & 255
+  return `${a}.${b}.${c}.${d}`
 }
 
 export async function assertSafeUrl(raw: string): Promise<SafeUrlResult> {
@@ -124,6 +123,12 @@ export async function assertSafeUrl(raw: string): Promise<SafeUrlResult> {
   const hostname = url.hostname.replace(/^\[|\]$/g, '').toLowerCase()
   if (isBlockedHostname(hostname)) {
     return { ok: false, reason: 'Blocked hostname' }
+  }
+
+  const decimalIp = decodeDecimalIpv4(hostname)
+  if (decimalIp) {
+    if (isBlockedIp(decimalIp)) return { ok: false, reason: 'Private or link-local IP blocked' }
+    return { ok: false, reason: 'Numeric-host URLs not allowed' }
   }
 
   if (net.isIP(hostname)) {

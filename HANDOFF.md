@@ -1,12 +1,18 @@
 # HANDOFF — Word of Mouth
 
 **Repo:** https://github.com/jxav22/word-of-mouth  
-**Working tree:** `/workspace` (repo-backed cloud agent with push credentials)  
-**Snapshot source:** `/cursor/stores/bc-5ef5d8bf-cd17-4012-9c97-2592fe303a01/internal/word-of-mouth-snapshot.tgz`  
-**Sprint clock:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~04:40 NZDT
+**Branch (ingestion):** `feat/ingestion` → PR into `main`  
+**Sprint clock:** hard stop ~05:37 NZDT Fri 27 Nov 2026
 
-## Status
-Vertical slice unpacked from Foundation snapshot onto `main`. Push in progress / landing now. Parallel specialists may start from `main` after push confirmed.
+## Ingestion ownership (`feat/ingestion`)
+- Extensible adapters: `src/lib/sources/{registry,types,rss,hn,reddit,json-api,demo}.ts`
+- Normalise: `src/lib/ingest/normalize.ts`
+- Pipeline + per-source refresh: `src/lib/ingest/pipeline.ts`
+- Diagnostics ring buffer: `src/lib/ingest/diagnostics.ts`
+- SSRF: `src/lib/security/ssrf.ts`
+- Scheduler: `src/workers/scheduler.ts` (node-cron, due-feed selection)
+- APIs: `/api/sources`, `/api/sources/:id`, `/api/sources/:id/refresh`, `/api/ingest/status`
+- UI: `/sources` management + diagnostics
 
 ## How to run
 ```bash
@@ -14,24 +20,27 @@ git clone https://github.com/jxav22/word-of-mouth.git
 cd word-of-mouth
 npm install
 npm run dev          # http://localhost:3000 — demo feeds seed on boot
+WOM_DISABLE_SCHEDULER=1 npm test
 # or
 npm run build && npm start
-# or
 docker compose up --build
 ```
 
-## Implemented / partial / unimplemented
-See STATUS.md. Vertical slice in-tree: APIs, UI, demo seed, security, Docker, tests scaffolded.
+## Env knobs (ingestion)
+- `WOM_DISABLE_SCHEDULER=1` — skip in-process cron
+- `WOM_REFRESH_MINUTES` — cron cadence (default 30, min 5)
+- `WOM_REFRESH_DEMO=1` — include demo feeds in scheduled refresh
 
 ## Test evidence
-Build/test verification continuing after push; update this section when green.
+- `WOM_DISABLE_SCHEDULER=1 npm test` — 16/16 passing (unit + integration)
 
-## Owner
-[Word of Mouth core](bc-36b64192-691a-5946-9a6e-059fadb961e2) owns remote push and continuous polish.
-Foundation snapshot authored by [Foundation scaffold](bc-bcf367bd-4a98-5c7b-8b12-ca5af68df940).
+## Other tracks
+- Intelligence / frontend / QA should merge against `main` after this PR or stack carefully; avoid rewriting ingest adapters.
+- See STATUS.md for implemented vs partial.
 
 ## Key paths
-- `src/lib/` — core
-- `src/app/` — UI + API
-- `Dockerfile` / `docker-compose.yml`
-- `tests/`
+- `src/lib/sources/` — adapters
+- `src/lib/ingest/` — pipeline, normalise, diagnostics
+- `src/lib/security/ssrf.ts`
+- `src/workers/scheduler.ts`
+- `src/app/sources/` + `src/app/api/sources/` + `src/app/api/ingest/`

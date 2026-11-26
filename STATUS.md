@@ -1,39 +1,41 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~04:37 NZDT
+Updated: 2026-11-27 ~04:46 NZDT (ingestion)
 
 ## Implemented
 - Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
 - Domain model + schema (feeds, sources, articles, feed_items)
 - NL parse → keywords/topics/source discovery (`src/lib/feeds/parse.ts`)
-- Ingest adapters: RSS + HN Algolia (`src/lib/sources/*`)
+- **Ingest adapter registry** (`src/lib/sources/registry.ts`): rss, hn, reddit, json-api, demo
+- Real fetch + normalise (`src/lib/ingest/normalize.ts`, adapters via `safeFetch`)
+- Strengthened SSRF: multi-hop redirect revalidation, streaming size cap, IPv6/mapped, decimal-host, metadata/suffix blocks
 - Rank, dedupe/cluster, extractive + optional AI summarise
-- SSRF protection, HTML sanitise, prompt fencing
+- HTML sanitise, prompt fencing
 - API: health, feeds CRUD-ish, refresh, feedback, share, search, sources, public `/api/s/:token`
-- UI: home create+browse, feed detail, item detail, search, sources diagnostics, share page
+- **Source management API**: `GET/POST /api/sources`, `GET/PATCH/DELETE /api/sources/:id`, `POST /api/sources/:id/refresh`
+- **Ingest diagnostics**: `GET/POST /api/ingest/status`, run history, scheduler status on `/api/health` + `/api/sources`
+- UI: home create+browse, feed detail, item detail, search, **sources diagnostics + add/refresh/enable/delete + scheduler controls**, share page
 - Demo seed: 4 labelled feeds
-- In-process scheduler
+- **Due-feed scheduler** via node-cron (respects `refreshIntervalMin`, lock, warm-up tick, failure counters)
+- Source diagnostics columns: fetchCount, consecutiveFailures, lastSuccessAt, lastDurationMs, lastItemCount, adapterId, enabled
 - Dockerfile + docker-compose
-- Vitest unit (rank/dedupe/ssrf) + integration (create feed) + Playwright smoke scaffold
+- Vitest: rank/dedupe/ssrf/normalize/registry/scheduler + integration create-feed + Playwright smoke scaffold
 
 ## Partial
-- Live ingest quality depends on upstream RSS availability; some sources may error gracefully
+- Live ingest quality depends on upstream RSS/Reddit availability; errors recorded per-source
 - Feedback only lightly adjusts relevance threshold (not full re-rank model)
 - E2E not yet proven green in this environment (Playwright browsers may need install)
-- GitHub push: `gh` token sees repo but lacks write (`permissions.push=false`); Cursor App grant may be required
+- Redis/job queue still deferred (in-process cron is reliable for single-node)
 
 ## Unimplemented / deferred
-- Reddit public adapter (kind reserved)
-- Redis/job queue (in-process cron only)
 - Auth / multi-user accounts
 - Embedding-based ranking
+- Multi-instance distributed scheduler
 
 ## Defects
-- `gh` integration token cannot PATCH/push to `jxav22/word-of-mouth` yet
 - Search result links use feed id (works) not slug (cosmetic)
 
 ## Roadmap
-1. Land push credentials / grant Cursor GitHub App on repo
-2. Prove `npm run build`, seed, `npm test`, e2e smoke
-3. Harden source adapters + richer feedback refine
-4. Deploy (Vercel or compose)
+1. Prove `npm run build`, seed, `npm test`, e2e smoke on CI
+2. Deploy (Vercel or compose)
+3. Richer feedback refine (intelligence track)

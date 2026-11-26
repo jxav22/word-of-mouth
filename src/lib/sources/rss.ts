@@ -52,7 +52,7 @@ export async function fetchRss(url: string, sourceTitle: string): Promise<{
 
 export const rssAdapter: SourceAdapter = {
   id: 'rss',
-  kinds: ['rss', 'api'],
+  kinds: ['rss'],
   match: (url) => {
     const u = url.toLowerCase()
     return (
