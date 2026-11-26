@@ -89,6 +89,12 @@ export default async function FeedDetailPage({ params, searchParams }: Props) {
               ingest. Down-vote noise or raise the threshold under Keywords &amp; threshold.
             </p>
           ) : null}
+          {items.length === 0 ? (
+            <p className="text-sm text-[var(--ink-soft)]" role="status">
+              No ranked items yet. Refresh now to retry live sources, or check diagnostics if upstream
+              warnings appeared above.
+            </p>
+          ) : null}
           <FeedSearch feedSlug={feed.slug} items={items} />
         </div>
         <aside className="h-fit space-y-3 border-t border-[var(--line)] pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
