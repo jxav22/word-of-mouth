@@ -1,4 +1,5 @@
 import type { RawArticle } from '../types'
+import { expandKeywords } from './expand'
 import { semanticScores, tokenize } from './tfidf'
 
 export type RankPreferences = {
@@ -154,27 +155,34 @@ export function rankArticles<
 ): Array<T & { score: number; reasons: string[] }> {
   const excludeKeywords = opts?.excludeKeywords ?? []
   const prefs = opts?.prefs ?? {}
+  const expanded = expandKeywords(keywords)
   const queryText =
     opts?.queryText ||
-    [...keywords, ...topics].filter(Boolean).join(' ')
+    [...expanded, ...topics].filter(Boolean).join(' ')
 
   const docs = articles.map((a) => `${a.title}\n${a.contentText}`)
   const sem = queryText.trim() ? semanticScores(queryText, docs) : articles.map(() => 0)
 
-  return articles
+  const ranked = articles
     .map((a, i) => {
       const { score, reasons } = scoreArticle(
         a,
-        keywords,
+        expanded,
         topics,
         excludeKeywords,
         prefs,
         sem[i] ?? 0,
       )
-      return { ...a, score, reasons }
+      const tagged =
+        expanded.length > keywords.length
+          ? [...reasons, 'expanded-keywords']
+          : reasons
+      return { ...a, score, reasons: [...new Set(tagged)].slice(0, 8) }
     })
     .filter((a) => a.score >= threshold)
     .sort((a, b) => b.score - a.score)
+
+  return mmrReorder(ranked)
 }
 
 /**
@@ -200,4 +208,52 @@ export function diversifyByCluster<
     .sort((a, b) => b.score - a.score)
 }
 
-export { tokenize }
+function titleTokens(title: string): Set<string> {
+  return new Set(tokenize(title))
+}
+
+function jaccardSets(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 && b.size === 0) return 1
+  let inter = 0
+  for (const x of a) if (b.has(x)) inter++
+  const union = a.size + b.size - inter
+  return union === 0 ? 0 : inter / union
+}
+
+/**
+ * Maximal Marginal Relevance reorder: trade a little relevance for title novelty
+ * so the top of the feed is less repetitive across near-phrasing.
+ */
+export function mmrReorder<T extends { title: string; score: number }>(
+  items: T[],
+  lambda = 0.72,
+): T[] {
+  if (items.length <= 2) return items
+  const remaining = [...items]
+  const selected: T[] = []
+  const selectedToks: Set<string>[] = []
+
+  while (remaining.length) {
+    let bestIdx = 0
+    let bestVal = -Infinity
+    for (let i = 0; i < remaining.length; i++) {
+      const cand = remaining[i]
+      const toks = titleTokens(cand.title)
+      let maxSim = 0
+      for (const prev of selectedToks) {
+        maxSim = Math.max(maxSim, jaccardSets(toks, prev))
+      }
+      const mmr = lambda * cand.score - (1 - lambda) * maxSim
+      if (mmr > bestVal) {
+        bestVal = mmr
+        bestIdx = i
+      }
+    }
+    const [picked] = remaining.splice(bestIdx, 1)
+    selected.push(picked)
+    selectedToks.push(titleTokens(picked.title))
+  }
+  return selected
+}
+
+export { tokenize, expandKeywords }
