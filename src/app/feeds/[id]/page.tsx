@@ -6,6 +6,7 @@ import { RefreshButton } from '@/components/RefreshButton'
 import { ShareButton } from '@/components/ShareButton'
 import { SourceWarningsBanner } from '@/components/SourceWarningsBanner'
 import { bootstrap } from '@/lib/bootstrap'
+import { mapErrorSourcesToWarnings } from '@/lib/ingest/source-warnings'
 import { ensureShareToken, getFeedByIdOrSlug, getFeedItems, listSources } from '@/lib/feeds/service'
 
 export const dynamic = 'force-dynamic'
@@ -27,11 +28,7 @@ export default async function FeedDetailPage({ params, searchParams }: Props) {
   const ok = sources.filter((s) => s.status === 'ok').length
   const errSources = sources.filter((s) => s.status === 'error')
   const justCreated = sp.created === '1'
-  const warnings = errSources.map((s) => ({
-    title: s.title,
-    kind: s.kind,
-    message: s.lastError || 'Fetch failed',
-  }))
+  const warnings = mapErrorSourcesToWarnings(errSources)
 
   return (
     <div className="space-y-8">

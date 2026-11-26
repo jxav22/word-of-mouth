@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { FormEvent, useState, useTransition } from 'react'
+import { mapIngestErrorsToWarnings, type SourceWarning } from '@/lib/ingest/source-warnings'
 import { SourceWarningsBanner } from './SourceWarningsBanner'
 
 const EXAMPLES = [
@@ -10,8 +11,6 @@ const EXAMPLES = [
   'Auckland tech meetups and local events',
 ]
 
-type IngestWarning = { title: string; kind?: string; message: string }
-
 export function CreateFeedForm() {
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -19,7 +18,7 @@ export function CreateFeedForm() {
   const [showTitle, setShowTitle] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
-  const [warnings, setWarnings] = useState<IngestWarning[]>([])
+  const [warnings, setWarnings] = useState<SourceWarning[]>([])
   const [pending, startTransition] = useTransition()
 
   function onSubmit(e: FormEvent) {
@@ -37,15 +36,7 @@ export function CreateFeedForm() {
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || 'Create failed')
 
-        const rawErrors: string[] = data.ingest?.errors || []
-        const nextWarnings: IngestWarning[] = rawErrors.map((message) => {
-          const kindMatch = message.match(/\b(rss|hn|reddit|api|demo)\b/i)
-          return {
-            title: 'Source ingest',
-            kind: kindMatch?.[1]?.toLowerCase(),
-            message,
-          }
-        })
+        const nextWarnings = mapIngestErrorsToWarnings(data.ingest?.errors || [])
         setWarnings(nextWarnings)
 
         const ingested = data.ingest?.ingested ?? 0
