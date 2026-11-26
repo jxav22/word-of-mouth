@@ -1,58 +1,41 @@
 # STATUS — Word of Mouth
 
-Updated: 2026-11-27 ~04:50 NZDT (main integrating specialists)
+Updated: 2026-11-27 ~04:55 NZDT (`feat/intelligence` rebased onto post-ingestion main)
 
 ## Implemented
-- Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle / better-sqlite3)
+- Next.js 15 App Router + TypeScript + Tailwind + SQLite (Drizzle/better-sqlite3)
 - Domain model + schema (feeds, sources, articles, feed_items)
-- NL parse → keywords/topics/source discovery (`src/lib/feeds/parse.ts`)
-- **Ingest adapter registry** (`src/lib/sources/registry.ts`): rss, hn, reddit, json-api, demo
-- Real fetch + normalise (`src/lib/ingest/normalize.ts`, adapters via `safeFetch`)
-- Strengthened SSRF: multi-hop redirect revalidation, streaming size cap, IPv6/mapped, decimal-host, metadata/suffix blocks
-- Rank, dedupe/cluster, extractive + optional AI summarise
-- HTML sanitise, prompt fencing
-- API: health, feeds CRUD-ish, refresh, feedback, share, search, sources, public `/api/s/:token`
-- **Source management API**: `GET/POST /api/sources`, `GET/PATCH/DELETE /api/sources/:id`, `POST /api/sources/:id/refresh`
-- **Ingest diagnostics**: `GET/POST /api/ingest/status`, scheduler status on `/api/health` + `/api/sources`
-- UI: home create+browse, feed detail, item detail, search, sources diagnostics + add/refresh/enable/delete + scheduler controls, share page
-- Demo seed: 4 labelled feeds (boot + `npm run seed`)
-- **Due-feed scheduler** via node-cron (respects `refreshIntervalMin`, lock, warm-up tick)
-- Source diagnostics columns: fetchCount, consecutiveFailures, lastSuccessAt, lastDurationMs, lastItemCount, adapterId, enabled
-- Dockerfile + docker-compose + `.dockerignore` + standalone `scripts/start.sh`
-- GitHub Actions CI: `npm ci` → `npm test` → `npm run build` → Playwright chromium e2e
-- Vitest unit + integration; Playwright e2e smoke
-- Self-hosted fonts via `@fontsource` (CI-safe)
+  - Ingestion diagnostics columns on sources
+  - Intelligence: `exclude_keywords`, `summary_attribution`
+- **Intelligence — NL parse** (`src/lib/feeds/parse.ts`): intent, phrases/quotes, short-token keep, exclusions, adaptive threshold, `configQuality`, source discovery (incl. reddit/dev.to from ingestion)
+- **Intelligence — rank** (`src/lib/rank/*`): lexical + TF-IDF blend, synonym expand, MMR, freshness, prefs, cluster diversity
+- **Intelligence — cluster** (`src/lib/cluster/dedupe.ts`): URL canonicalize, hard dedupe, story clustering
+- **Intelligence — summarise**: OpenAI/Anthropic optional + extractive fallback with attribution
+- **Intelligence — feedback refine** (`src/lib/feeds/refine.ts`): learn keywords/excludes, adjust threshold, re-rank
+- Ingest adapters via registry (RSS, HN, Reddit, API/demo) + diagnostics/scheduler (ingestion `#2`)
+- SSRF protection, HTML sanitise, prompt fencing
+- API: health, feeds, `POST /api/feeds/parse`, refresh, feedback (refine diff), share, search, sources, public `/api/s/:token`
+- UI: create/browse, feed/item detail (attribution + cluster), search, sources, share
+- Demo seed, CI, Dockerfile + docker-compose
+- Vitest coverage for parse/rank/tfidf/dedupe/cluster/summarise/refine/feedback
 
 ## Partial
-- Live ingest quality depends on upstream RSS/Reddit/HN; errors recorded per-source
-- Reddit public endpoints may 403/404 from some cloud egress IPs; adapter tries RSS then JSON
-- Feedback only lightly adjusts relevance threshold (intelligence PR may deepen)
-- Optional AI summarise only when env keys present
-- Search result links use feed **id** not slug — cosmetic
-- Docker Compose unverified on sprint VMs (no Docker)
+- Live ingest quality depends on upstream availability
+- Semantic rank is TF-IDF cosine (no embedding model yet)
+- Feedback refine is heuristic term learning
+- Create UI not yet wired to `/api/feeds/parse` quality hints (API ready)
+- E2E / Docker compose may need local Playwright browsers / Docker socket
 
 ## Unimplemented / deferred
-- Redis / job queue (in-process cron only)
+- Redis/job queue (in-process cron only)
 - Auth / multi-user accounts
-- Embedding-based ranking
-- Multi-instance distributed scheduler
+- True embedding-based ranking
 
 ## Defects
-- CI Google-font loader failure — **fixed** with `@fontsource` (merged via PR #1)
-- Cosmetic: search links prefer id over slug
-
-## Verification
-| Check | Result |
-| --- | --- |
-| `npm test` | **16/16** (pre-ingestion merge; re-verify after) |
-| `npm run build` | **green** after fontsource |
-| `npm run test:e2e` | **4/4** |
-| Live `POST /api/feeds` | up to **80 ingested / 0 errors** |
-| PR #1 CI | **green** → merged |
-| `docker compose` | **not run** — Docker absent |
+- Search result links use feed id (works) not slug (cosmetic)
 
 ## Roadmap
-1. Land ingestion → intelligence → UI PRs on main
-2. Prove CI stays green after each merge
-3. Docker compose smoke on a host with Docker
+1. Land intelligence PR `#4` on main
+2. Wire create form to parse preview quality hints
+3. Optional embedding rank behind env flag
 4. Deploy (Vercel or compose)

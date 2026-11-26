@@ -67,9 +67,9 @@ export function canonicalizeUrl(raw: string): string {
     const params = [...u.searchParams.entries()].sort(([a], [b]) => a.localeCompare(b))
     u.search = ''
     for (const [k, v] of params) u.searchParams.append(k, v)
-    let host = u.hostname.toLowerCase().replace(/^www\./, '')
+    const host = u.hostname.toLowerCase().replace(/^www\./, '')
     u.hostname = host
-    let path = u.pathname.replace(/\/+$/, '') || '/'
+    const path = u.pathname.replace(/\/+$/, '') || '/'
     u.pathname = path
     return u.toString().toLowerCase()
   } catch {

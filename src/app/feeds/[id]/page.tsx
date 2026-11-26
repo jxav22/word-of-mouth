@@ -42,7 +42,10 @@ export default async function FeedDetailPage({ params }: Props) {
           </Link>
         </div>
         <p className="text-xs text-[var(--ink-soft)]">
-          Keywords: {feed.keywords.join(', ')} · threshold {(feed.relevanceThreshold * 100).toFixed(0)}%
+          Keywords: {feed.keywords.join(', ')}
+          {feed.excludeKeywords?.length ? ` · exclude: ${feed.excludeKeywords.join(', ')}` : ''}
+          {' · '}
+          threshold {(feed.relevanceThreshold * 100).toFixed(0)}%
         </p>
       </div>
 

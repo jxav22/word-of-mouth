@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { conventionalScore, rankArticles, scoreArticle } from '../../src/lib/rank'
+import { conventionalScore, diversifyByCluster, rankArticles, scoreArticle } from '../../src/lib/rank'
 
 describe('rank', () => {
   it('scores keyword hits in title higher', () => {
@@ -64,6 +64,16 @@ describe('rank', () => {
       { boostTerms: [], buryTerms: ['rust'] },
     )
     expect(boosted.score).toBeGreaterThan(buried.score)
+  })
+
+  it('diversifies later cluster members', () => {
+    const out = diversifyByCluster([
+      { score: 0.9, clusterId: 'c1', id: 'a' },
+      { score: 0.88, clusterId: 'c1', id: 'b' },
+      { score: 0.7, clusterId: 'c2', id: 'c' },
+    ])
+    expect(out[0].id).toBe('a')
+    expect(out.find((x) => x.id === 'b')!.score).toBeLessThan(0.88)
   })
 
   it('blends semantic similarity into ranking', () => {
