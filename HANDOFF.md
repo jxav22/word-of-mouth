@@ -3,6 +3,7 @@
 **Repo:** https://github.com/jxav22/word-of-mouth  
 **Clone:** `git clone https://github.com/jxav22/word-of-mouth.git`  
 **Sprint:** started ~04:27 NZDT Fri 27 Nov 2026; this note ~05:00 NZDT  
+**main HEAD:** `674d779`
 **Hard stop:** ~05:37 NZDT
 
 ## Status
@@ -12,7 +13,7 @@
 | [#2](https://github.com/jxav22/word-of-mouth/pull/2) | `feat/ingestion` | **MERGED** |
 | [#4](https://github.com/jxav22/word-of-mouth/pull/4) | `feat/intelligence` | **MERGED** |
 | [#3](https://github.com/jxav22/word-of-mouth/pull/3) | `feat/ui` | **MERGED** |
-| [#5](https://github.com/jxav22/word-of-mouth/pull/5) | `cursor/qa-postmerge-verify-a980` | **MERGING** (CI green @ `29e6ace`) |
+| [#5](https://github.com/jxav22/word-of-mouth/pull/5) | `cursor/qa-postmerge-verify-a980` | **MERGED** onto main (`674d779`) |
 
 Product is cloneable and runnable without credentials. Layout keeps `@fontsource` + `AppChrome` (no `next/font/google`).
 
