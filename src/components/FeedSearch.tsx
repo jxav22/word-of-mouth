@@ -58,9 +58,14 @@ export function FeedSearch({
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-[0.68rem] uppercase tracking-[0.1em] text-[var(--ink-muted)]">
                   <span>{item.article.sourceTitle}</span>
                   <span>score {(item.score * 100).toFixed(0)}</span>
-                  {item.reasons.slice(0, 2).map((r) => (
-                    <span key={r}>{r}</span>
-                  ))}
+                  {[
+                    ...item.reasons.filter((r) => r === 'soft-floor'),
+                    ...item.reasons.filter((r) => r !== 'soft-floor'),
+                  ]
+                    .slice(0, 2)
+                    .map((r) => (
+                      <span key={r}>{r}</span>
+                    ))}
                 </div>
                 <div className="score-bar mt-1.5 max-w-xs">
                   <span style={{ width: `${Math.round(item.score * 100)}%` }} />
