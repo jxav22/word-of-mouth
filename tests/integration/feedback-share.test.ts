@@ -47,9 +47,12 @@ describe('feedback + share integration', () => {
     expect(hits.length).toBeGreaterThan(0)
 
     const before = getFeedByIdOrSlug(feed.id)!.relevanceThreshold
-    setFeedback(feed.id, items[0]!.id, 'down')
+    const votedId = items[0]!.id
+    setFeedback(feed.id, votedId, 'down')
     const after = getFeedByIdOrSlug(feed.id)!.relevanceThreshold
     expect(after).toBeGreaterThan(before)
-    expect(getFeedItems(feed.id)[0]!.feedback).toBe('down')
+    // Re-rank / cluster diversity may reorder the feed — assert the voted item, not index 0.
+    expect(getFeedItems(feed.id).find((i) => i.id === votedId)?.feedback).toBe('down')
   })
 })
+
