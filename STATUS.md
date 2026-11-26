@@ -15,6 +15,7 @@ Updated: 2026-11-27 ~04:56 NZDT (final integration)
 - Live ingest quality depends on upstreams; Reddit may 403 from some egress IPs
 - Optional AI summarise only with `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`
 - Search API stamps `feedSlug`; search UI prefers slug over id (`feat/polish-gaps`)
+- Create/feed/sources `SourceWarningsBanner` for non-fatal ingest failures (`feat/polish-gaps`)
 - Docker Compose files present but **not run** on sprint agent VMs (no Docker)
 
 ## Unimplemented / deferred
@@ -37,6 +38,5 @@ Live smoke (NZDT ~04:55–04:57): health ok; pages 200; create feed ranked items
 
 ## Roadmap
 1. Prove `docker compose up --build` on a Docker host
-2. Harden Reddit/HN failure UX; clearer per-source warnings in create flow
 3. Deploy (Vercel or compose)
 4. Richer embedding rank if time/budget
